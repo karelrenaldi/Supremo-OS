@@ -1,6 +1,6 @@
 void handleInterrupt21 (int AX, int BX, int CX, int DX);
 void printString(char *string);
-// void readString(char *string);
+void readString(char *string);
 void clear(char *buffer, int length);
 
 int main () {
@@ -16,9 +16,9 @@ void handleInterrupt21 (int AX, int BX, int CX, int DX) {
     case 0x0:
       printString(BX);
       break;
-    // case 0x1:
-    //   readString(BX);
-    //   break;
+    case 0x1:
+      readString(BX);
+      break;
     default:
       printString("Invalid interrupt");
   }
