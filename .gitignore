@@ -1,6 +1,4 @@
 kernel_asm.o
 kernel.o
-kernel
-bootloader
 system.img
-bochsout.txt
+bootloader
