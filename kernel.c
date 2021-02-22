@@ -81,6 +81,12 @@ void readString(char* string) {
   string[i] = 0x0;
 }
 
+void clear(char *buffer, int length) {
+	for (int i = 0; i < length; i++) {
+		buffer[i] = 0x0;
+	}
+}
+
 void drawing() {
   int i, j;
   int x_length = 50;

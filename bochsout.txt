@@ -221,14 +221,14 @@
 00000000000i[PLUGIN] reset of 'usb_uhci' plugin device by virtual method
 00000000000i[      ] set SIGINT handler to bx_debug_ctrlc_handler
 00000004662i[BIOS  ] $Revision: 13752 $ $Date: 2019-12-30 14:16:18 +0100 (Mon, 30 Dec 2019) $
-00000327542i[KBD   ] reset-disable command received
-00000333308i[BIOS  ] Starting rombios32
-00000333749i[BIOS  ] Shutdown flag 0
-00000334381i[BIOS  ] ram_size=0x02000000
-00000334824i[BIOS  ] ram_end=32MB
-00000434849i[BIOS  ] Found 1 cpu(s)
-00000448537i[BIOS  ] bios_table_addr: 0x000f9db8 end=0x000fcc00
-00000907455i[PCI   ] i440FX PMC write to PAM register 59 (TLB Flush)
+00000320064i[KBD   ] reset-disable command received
+00000325792i[BIOS  ] Starting rombios32
+00000326233i[BIOS  ] Shutdown flag 0
+00000326865i[BIOS  ] ram_size=0x02000000
+00000327308i[BIOS  ] ram_end=32MB
+00000427351i[BIOS  ] Found 1 cpu(s)
+00000441039i[BIOS  ] bios_table_addr: 0x000f9db8 end=0x000fcc00
+00000899957i[PCI   ] i440FX PMC write to PAM register 59 (TLB Flush)
 00001000000i[XGUI  ] charmap update. Font is 9 x 16
 00001366476i[P2ISA ] PCI IRQ routing: PIRQA# set to 0x0b
 00001366501i[P2ISA ] PCI IRQ routing: PIRQB# set to 0x09
