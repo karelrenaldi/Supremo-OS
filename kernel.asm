@@ -7,6 +7,7 @@
 global _putInMemory
 global _interrupt
 global _makeInterrupt21
+global _imageFile
 extern _handleInterrupt21
 
 ;void putInMemory (int segment, int address, char character)
@@ -62,6 +63,10 @@ _makeInterrupt21:
 	mov [si],dx	;set up our vector
 	pop ds
 	ret
+
+
+
+_imageFile: incbin "image.bin" 
 
 ;this is called when interrupt 21 happens
 ;it will call your function:
