@@ -30,6 +30,8 @@ extern char imageFile;
 int main()
 {
   char *string_input = "";
+  char *buffer;
+  int flag;
   makeInterrupt21();
 
   // Make graphic mode
@@ -44,13 +46,15 @@ int main()
 
   // Print string
   handleInterrupt21(0x0, "<====== WELCOME =====>", 0x0, 0x0);
-  runShell();
+  // runShell();
+  readFile(buffer, "coba.txt", &flag, 0xFF);
+  printString(buffer);
 
   // Loop input
-  // while (1)
-  // {
-  //   handleInterrupt21(0x1, string_input, 0x0, 0x0);
-  // }
+  while (1)
+  {
+    handleInterrupt21(0x1, string_input, 0x0, 0x0);
+  }
 }
 
 void drawingImage()
@@ -149,11 +153,13 @@ void drawingBox()
 
 void readSector(char *buffer, int sector)
 {
-  int ax = (0x02 << 8) + 0x1;
-  int cx = (div(sector, 36) << 8) + (mod(sector, 18) + 1);
-  int dx = mod(div(sector, 18), 2) << 8;
-
-  interrupt(0x13, ax, buffer, cx, dx);
+  interrupt(
+        0x13,
+        0x0201,
+        buffer,
+        div(sector, 36) << 8 | (mod(sector, 18) + 1),
+        mod(div(sector, 18), 2) << 8
+    );
 }
 
 void writeSector(char *buffer, int sector)
@@ -181,6 +187,11 @@ int isSameString(char *str1, char *str2)
   int lengthString1 = lengthString(str1);
   int lengthString2 = lengthString(str2);
 
+  printString("Length 1");
+  printString(lengthString1);
+  printString("Length 2");
+  printString(lengthString2);
+
   if (lengthString1 == lengthString2)
   {
     for (i = 0; i < lengthString1; i++)
@@ -207,8 +218,10 @@ char idxPath(char *path, char *files, char parentIndex)
     i++;
   }
 
+
   currentDirName[i] = '\0';
-  currentIndex = getCurrentIndex(currentDirName, files, parentIndex);
+  printString(currentDirName);
+  currentIndex = getCurrentIndex(currentDirName, &files, parentIndex);
 
   if (path[i] == '\0')
   {
@@ -243,6 +256,11 @@ char getCurrentIndex(char *name, char *files, char parentIndex)
       return files[parentIndex * 16];
     }
   }
+
+  printString("Hello");
+  printString(lengthString(files));
+  // printString(files[0] == parentIndex);
+  printString("Hello");
 
   for (i = 0; i < 64; i++)
   {
@@ -469,8 +487,17 @@ void readFile(char *buffer, char *path, int *result, char parentIndex)
   char sectors[512];
   char currentIndex;
 
+  // interrupt(0x21, 0x02, files, 0x101, 0);
+  // interrupt(0x21, 0x02, files + 512, 0x102, 0);
   readSector(files, 0x101);
   readSector(files + 512, 0x102);
+
+  if(files[0] == 0xFF) {
+    printString("HELLO ANJING BABI");
+  }
+  printString("==============");
+  interrupt(0x10, (0x0e << 8) + *(files), 0x0, 0x0, 0x0);
+  printString("==============");
 
   currentIndex = idxPath(path, files, parentIndex);
   if (currentIndex != NOT_FOUND_INDEX)
