@@ -226,7 +226,25 @@ char idxPath(char *path, char *files, char parentIndex)
 
 char getCurrentIndex(char *name, char *files, char parentIndex)
 {
-  for (int i = 0; i < 64; i++)
+  int i;
+
+  if (name[0] == '.' && name[1] == 0)
+  {
+    return parentIndex;
+  }
+  else if (name[0] == '.' && name[1] == '.' && name[2] == 0)
+  {
+    if (parentIndex == 0xFF)
+    { // Root folder
+      return parentIndex;
+    }
+    else
+    {
+      return files[parentIndex * 16];
+    }
+  }
+
+  for (i = 0; i < 64; i++)
   {
     if (files[i * 16] == parentIndex)
     {
@@ -471,9 +489,9 @@ void readFile(char *buffer, char *path, int *result, char parentIndex)
       readSector(sectors, 0x103);
       i = 0;
 
-      while (i < 16 && sectors[entry_sector_idx] != 0)
+      while (i < 16 && sectors[entry_sector_idx + i] != 0)
       {
-        readSector(buffer + (i * 512), sectors[entry_idx + i]);
+        readSector(buffer + (i * 512), sectors[entry_sector_idx + i]);
         i++;
       }
       *result = 0;
