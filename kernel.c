@@ -4,6 +4,9 @@ void readString(char *string);
 void clear(char *buffer, int length);
 void drawingBox();
 void drawingImage();
+void readSector(char *buffer, int sector);
+int mod(int a, int b);
+int div(int a, int b);
 
 extern char imageFile;
 
@@ -101,4 +104,28 @@ void drawingBox() {
       interrupt (0x10, (0x0c << 8) + 0x0c, 0x0, i + 320 - x_length - 1, j);
     }
   }
+}
+
+int mod (int a, int b){
+  while(a > b){
+    a -= b;
+  }
+  return a;
+}
+
+int div (int a, int b){
+  int ans = 0;
+  while(a > b){
+    a -= b;
+    ans++;
+  }
+  return ans;
+}
+
+void readSector(char *buffer, int sector){
+  interrupt(0x13, 
+  0x201, 
+  buffer, 
+  div(sector, 36) * 0x100 + mod(sector, 18) + 1, 
+  mod(div(sector, 18), 2) * 0x100);
 }
