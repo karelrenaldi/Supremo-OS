@@ -1,5 +1,11 @@
+#define MAX_CHAR 14
+
 int mod(int a, int m);
 int div(int a, int m);
+int isSameString(char* str1, char* str2);
+
+char idxPath(char* path, char* files, char parentIndex);
+char getCurrentIndex(char* name, char* files, char parentIndex);
 
 void handleInterrupt21 (int AX, int BX, int CX, int DX);
 void printString(char *string);
@@ -8,6 +14,7 @@ void clear(char *buffer, int length);
 void drawingBox();
 void drawingImage();
 void readSector(char *buffer, int sector);
+void writeSector(char* buffer, int sector);
 void writeFile(char* buffer, char* path, int *sectors, char parentIndex);
 void readFile(char* buffer, char* path, int *result, char parentIndex);
 
@@ -132,8 +139,56 @@ void writeSector(char* buffer, int sector) {
   interrupt(0x13, ax, buffer, cx, dx);
 }
 
+// 'src/main.txt' => parent = root
+// 'main.txt' => parent = srcIndex
+
+int isSameString(char* str1, char* str2) {
+  int i = 0;
+  while(i < 14) {
+    if(str1[i] != str2[i]) {
+      return 0;
+    }
+    i++;
+  }
+
+  return 1;
+}
+
+char idxPath(char* path, char* files, char parentIndex) {
+  int i = 0, j;
+  char currentDirName[MAX_CHAR], currentIndex;
+
+  while(i < MAX_CHAR && path[i] != '/' && path[i] != 0) {
+    currentDirName[i] = path[i];
+    i++;
+  }
+
+  currentDirName[i] = '\0';
+  currentIndex = getCurrentIndex(currentDirName, files, parentIndex);
+
+  if(path[i] == '\0') {
+    return currentIndex;
+  }else if(currentIndex == 0x40) {
+    return 0x40;
+  }else{
+    return idxPath(path + i + 1, files, currentIndex);
+  }
+}
+
+char getCurrentIndex(char* name, char* files, char parentIndex) {
+  for(int i = 0; i < 64; i++) {
+    if(files[i * 16] == parentIndex) {
+      if(isSameString(name, files + (i * 16) + 2)) {
+        return i;
+      }
+    }
+  }
+  return 0x40; // not found
+}
+
 void writeFile(char* buffer, char* path, int *sectors, char parentIndex) {
   int empty_entry, found, empty_map_sector, text_length, sector_needed;
+  int currentIndex, last_slash_index, i;
   char map[512], files[1024];
   char* iterator;
 
@@ -142,11 +197,40 @@ void writeFile(char* buffer, char* path, int *sectors, char parentIndex) {
   readSector(files, 0x101);
   readSector(files + 512, 0x102);
 
+  // find index of last slash
+  i = 0;
+  last_slash_index = 0;
+  iterator = path;
+  while(*iterator) {
+    if(*iterator == '/') {
+      last_slash_index = i;
+    }
+    i++;
+  }
+
+  // Initialisasi sectors
+  *sectors = 0;
+
+  // Cek file already exist or not
+  currentIndex = idxPath(path, files, parentIndex);
+
+  if(currentIndex != 0x40){ // Found
+    *sectors = -1;
+    printString("File sudah ada");
+    return;
+  }
+
+  // Get file parent name path from 0 to last_slash_idx
+  for(i = 0; i < last_slash_index; i++) {
+    
+  }
+  
+
   // Cek direktori yang kosong
   found = 0;
   empty_entry = 0;
-  while(empty_entry < 32 && found == 0) {
-    if(files[empty_entry * 32] == 0x00) {
+  while(empty_entry < 64 && found == 0) {
+    if(files[empty_entry * 16] == 0x00) {
       found = 1;
     }else{
       empty_entry++;
