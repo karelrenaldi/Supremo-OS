@@ -1,3 +1,5 @@
+#include "shell.h";
+
 #define MAX_CHAR 14
 #define FALSE 0
 #define TRUE 1
@@ -42,15 +44,13 @@ int main()
 
   // Print string
   handleInterrupt21(0x0, "<====== WELCOME =====>", 0x0, 0x0);
+  runShell();
 
   // Loop input
-  while (1)
-  {
-    handleInterrupt21(0x1, string_input, 0x0, 0x0);
-  }
-
-  while (1)
-    ;
+  // while (1)
+  // {
+  //   handleInterrupt21(0x1, string_input, 0x0, 0x0);
+  // }
 }
 
 void drawingImage()
