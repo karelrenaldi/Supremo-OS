@@ -165,9 +165,6 @@ void writeSector(char *buffer, int sector)
   interrupt(0x13, ax, buffer, cx, dx);
 }
 
-// 'src/main.txt' => parent = root
-// 'main.txt' => parent = srcIndex
-
 int lengthString(char *str)
 {
   int i = 0;
@@ -269,7 +266,7 @@ void writeFile(char *buffer, char *path, int *sectors, char parentIndex)
     i++;
   }
 
-  // Initialisasi sectors
+  // Initialization sectors
   *sectors = 0;
 
   // Cek file already exist or not
@@ -445,7 +442,50 @@ void writeFile(char *buffer, char *path, int *sectors, char parentIndex)
   writeSector(sectors, 0x103);
 }
 
-void readFile(char *buffer, char *path, int *result, char parentIndex);
+void readFile(char *buffer, char *path, int *result, char parentIndex)
+{
+  int i;
+  int entry_sector_idx;
+
+  char files[1024];
+  char sectors[512];
+  char currentIndex;
+
+  readSector(files, 0x101);
+  readSector(files + 512, 0x102);
+
+  currentIndex = idxPath(path, files, parentIndex);
+  if (currentIndex != NOT_FOUND_INDEX)
+  {
+    entry_sector_idx = files[(currentIndex * 16) + 1];
+
+    // Check folder or file
+    if (entry_sector_idx == 0xff)
+    {
+      *result = -1;
+      printString("File tidak ditemukan, Path ini adalah folder!");
+      return;
+    }
+    else
+    {
+      readSector(sectors, 0x103);
+      i = 0;
+
+      while (i < 16 && sectors[entry_sector_idx] != 0)
+      {
+        readSector(buffer + (i * 512), sectors[entry_idx + i]);
+        i++;
+      }
+      *result = 0;
+    }
+  }
+  else
+  {
+    *result = -1;
+    printString("File tidak ditemukan");
+    return;
+  }
+}
 
 void handleInterrupt21(int AX, int BX, int CX, int DX)
 {
