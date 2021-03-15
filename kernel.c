@@ -1,9 +1,15 @@
+int mod(int a, int m);
+int div(int a, int m);
+
 void handleInterrupt21 (int AX, int BX, int CX, int DX);
 void printString(char *string);
 void readString(char *string);
 void clear(char *buffer, int length);
 void drawingBox();
 void drawingImage();
+void readSector(char *buffer, int sector);
+void writeFile(char* buffer, char* path, int *sectors, char parentIndex);
+void readFile(char* buffer, char* path, int *result, char parentIndex);
 
 extern char imageFile;
 
@@ -44,17 +50,24 @@ void drawingImage() {
   }
 }
 
-void handleInterrupt21 (int AX, int BX, int CX, int DX) {
-  switch (AX) {
-    case 0x0:
-      printString(BX);
-      break;
-    case 0x1:
-      readString(BX);
-      break;
-    default:
-      printString("Invalid interrupt");
+int mod(int a, int m) {
+  int res = a;
+
+  while(res >= m) {
+    res = res - m;
   }
+
+  return res;
+}
+
+int div(int a, int m) {
+  int res = 0;
+
+  while(res * m <= a) {
+    res += 1;
+  }
+
+  return res;
 }
 
 void printString(char *string) {
@@ -100,5 +113,80 @@ void drawingBox() {
     for(j = y_length; j != 0; j--) {
       interrupt (0x10, (0x0c << 8) + 0x0c, 0x0, i + 320 - x_length - 1, j);
     }
+  }
+}
+
+void readSector(char *buffer, int sector) {
+  int ax = (0x02 << 8) + 0x1;
+  int cx = (div(sector, 36) << 8) + (mod(sector, 18) + 1);
+  int dx = mod(div(sector, 18), 2) << 8;
+
+  interrupt(0x13, ax, buffer, cx, dx);
+}
+
+void writeSector(char* buffer, int sector) {
+  int ax = (0x03 << 8) + 0x1;
+  int cx = (div(sector, 36) << 8) + (mod(sector, 18) + 1);
+  int dx = mod(div(sector, 18), 2) << 8;
+
+  interrupt(0x13, ax, buffer, cx, dx);
+}
+
+void writeFile(char* buffer, char* path, int *sectors, char parentIndex) {
+  int empty_entry, found, empty_map_sector, text_length, sector_needed;
+  char map[512], files[1024];
+  char* iterator;
+
+  // Baca sektor map dan dir
+  readSector(map, 0x100);
+  readSector(files, 0x101);
+  readSector(files + 512, 0x102);
+
+  // Cek direktori yang kosong
+  found = 0;
+  empty_entry = 0;
+  while(empty_entry < 32 && found == 0) {
+    if(files[empty_entry * 32] == 0x00) {
+      found = 1;
+    }else{
+      empty_entry++;
+    }
+  }
+
+  if(found != 1) {
+    printString("Tidak ditemukan entry kosong");
+  }else{
+    // Count sector_needed
+    text_length = 0;
+    iterator = buffer;
+    while(*iterator) {
+      iterator++;
+      text_length++;
+    }
+    sector_needed = div(text_length, 512) + 1;
+
+    // Count available sector
+    
+  }
+}
+
+void readFile(char* buffer, char* path, int *result, char parentIndex);
+
+void handleInterrupt21 (int AX, int BX, int CX, int DX) {
+  char AL, AH;
+  AL = (char) (AX);
+  AH = (char) (AX >> 8);
+  switch (AL) {
+    case 0x00:
+      printString(BX);
+      break;
+    case 0x01:
+      readString(BX);
+      break;
+    case 0x02:
+      readSector(BX, CX);
+      break;
+    default:
+      printString("Invalid interrupt");
   }
 }
