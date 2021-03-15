@@ -1,26 +1,32 @@
 #define MAX_CHAR 14
+#define FALSE 0
+#define TRUE 1
+#define NOT_FOUND_INDEX 0x40
+#define UNDEFINE_INDEX -1
 
 int mod(int a, int m);
 int div(int a, int m);
-int isSameString(char* str1, char* str2);
+int isSameString(char *str1, char *str2);
+int lengthString(char *str);
 
-char idxPath(char* path, char* files, char parentIndex);
-char getCurrentIndex(char* name, char* files, char parentIndex);
+char idxPath(char *path, char *files, char parentIndex);
+char getCurrentIndex(char *name, char *files, char parentIndex);
 
-void handleInterrupt21 (int AX, int BX, int CX, int DX);
+void handleInterrupt21(int AX, int BX, int CX, int DX);
 void printString(char *string);
 void readString(char *string);
 void clear(char *buffer, int length);
 void drawingBox();
 void drawingImage();
 void readSector(char *buffer, int sector);
-void writeSector(char* buffer, int sector);
-void writeFile(char* buffer, char* path, int *sectors, char parentIndex);
-void readFile(char* buffer, char* path, int *result, char parentIndex);
+void writeSector(char *buffer, int sector);
+void writeFile(char *buffer, char *path, int *sectors, char parentIndex);
+void readFile(char *buffer, char *path, int *result, char parentIndex);
 
 extern char imageFile;
 
-int main () {
+int main()
+{
   char *string_input = "";
   makeInterrupt21();
 
@@ -38,66 +44,79 @@ int main () {
   handleInterrupt21(0x0, "<====== WELCOME =====>", 0x0, 0x0);
 
   // Loop input
-  while(1) {
+  while (1)
+  {
     handleInterrupt21(0x1, string_input, 0x0, 0x0);
   }
 
-  while (1);
+  while (1)
+    ;
 }
 
-void drawingImage() {
-  char* image = &imageFile;
+void drawingImage()
+{
+  char *image = &imageFile;
   int x, y, i = 2;
 
-  for(x = image[0]; x != 0; x--) {
-    for(y = image[1]; y != 0; y--) {
+  for (x = image[0]; x != 0; x--)
+  {
+    for (y = image[1]; y != 0; y--)
+    {
       interrupt(0x10, (0xc << 8) + image[i], 0x0, x + (160 - image[0] / 2), y + (100 - image[0] / 2));
       i++;
     }
   }
 }
 
-int mod(int a, int m) {
+int mod(int a, int m)
+{
   int res = a;
 
-  while(res >= m) {
+  while (res >= m)
+  {
     res = res - m;
   }
 
   return res;
 }
 
-int div(int a, int m) {
+int div(int a, int m)
+{
   int res = 0;
 
-  while(res * m <= a) {
+  while (res * m <= a)
+  {
     res += 1;
   }
 
   return res;
 }
 
-void printString(char *string) {
+void printString(char *string)
+{
   int i = 0;
-  while(string[i] != 0){
-    interrupt (0x10, (0x0e << 8) + *(string + i), 0x0, 0x0, 0x0);
+  while (string[i] != 0)
+  {
+    interrupt(0x10, (0x0e << 8) + *(string + i), 0x0, 0x0, 0x0);
     i++;
   }
-  interrupt (0x10, (0x0e << 8) + '\r', 0x0, 0x0, 0x0);
-  interrupt (0x10, (0x0e << 8) + '\n', 0x0, 0x0, 0x0);
+  interrupt(0x10, (0x0e << 8) + '\r', 0x0, 0x0, 0x0);
+  interrupt(0x10, (0x0e << 8) + '\n', 0x0, 0x0, 0x0);
 }
 
-void readString(char* string) {
+void readString(char *string)
+{
   int i = 0;
   char input = 0x0;
-  while(input != 0x0d) {
+  while (input != 0x0d)
+  {
     input = interrupt(0x16, 0x0, 0x0, 0x0, 0x0);
     string[i] = input;
     interrupt(0x10, (0x0e << 8) + input, 0x0, 0x0, 0x0);
 
-    if (input == 0x0d) 
+    if (input == 0x0d)
       interrupt(0x10, (0x0e << 8) + 10, 0x0, 0x0, 0x0);
-    
+
     i++;
   }
   string[i] = 0x0;
@@ -105,25 +124,31 @@ void readString(char* string) {
   *string = "";
 }
 
-void clear(char *buffer, int length) {
+void clear(char *buffer, int length)
+{
   int i;
-	for (i = 0; i < length; i++) {
-		buffer[i] = 0x0;
-	}
+  for (i = 0; i < length; i++)
+  {
+    buffer[i] = 0x0;
+  }
 }
 
-void drawingBox() {
+void drawingBox()
+{
   int i, j;
   int x_length = 50;
-  for(i = x_length; i != 0; i--) {
+  for (i = x_length; i != 0; i--)
+  {
     int y_length = 50;
-    for(j = y_length; j != 0; j--) {
-      interrupt (0x10, (0x0c << 8) + 0x0c, 0x0, i + 320 - x_length - 1, j);
+    for (j = y_length; j != 0; j--)
+    {
+      interrupt(0x10, (0x0c << 8) + 0x0c, 0x0, i + 320 - x_length - 1, j);
     }
   }
 }
 
-void readSector(char *buffer, int sector) {
+void readSector(char *buffer, int sector)
+{
   int ax = (0x02 << 8) + 0x1;
   int cx = (div(sector, 36) << 8) + (mod(sector, 18) + 1);
   int dx = mod(div(sector, 18), 2) << 8;
@@ -131,7 +156,8 @@ void readSector(char *buffer, int sector) {
   interrupt(0x13, ax, buffer, cx, dx);
 }
 
-void writeSector(char* buffer, int sector) {
+void writeSector(char *buffer, int sector)
+{
   int ax = (0x03 << 8) + 0x1;
   int cx = (div(sector, 36) << 8) + (mod(sector, 18) + 1);
   int dx = mod(div(sector, 18), 2) << 8;
@@ -142,23 +168,44 @@ void writeSector(char* buffer, int sector) {
 // 'src/main.txt' => parent = root
 // 'main.txt' => parent = srcIndex
 
-int isSameString(char* str1, char* str2) {
+int lengthString(char *str)
+{
   int i = 0;
-  while(i < 14) {
-    if(str1[i] != str2[i]) {
-      return 0;
-    }
+  while (str[i] != 0)
+  {
     i++;
   }
-
-  return 1;
+  return i;
 }
 
-char idxPath(char* path, char* files, char parentIndex) {
+int isSameString(char *str1, char *str2)
+{
+  int i;
+  int lengthString1 = lengthString(str1);
+  int lengthString2 = lengthString(str2);
+
+  if (lengthString1 == lengthString2)
+  {
+    for (i = 0; i < lengthString1; i++)
+    {
+      if (str1[i] != str2[i])
+      {
+        return FALSE;
+      }
+    }
+    return TRUE;
+  }
+
+  return FALSE;
+}
+
+char idxPath(char *path, char *files, char parentIndex)
+{
   int i = 0, j;
   char currentDirName[MAX_CHAR], currentIndex;
 
-  while(i < MAX_CHAR && path[i] != '/' && path[i] != 0) {
+  while (i < MAX_CHAR && path[i] != '/' && path[i] != 0)
+  {
     currentDirName[i] = path[i];
     i++;
   }
@@ -166,44 +213,58 @@ char idxPath(char* path, char* files, char parentIndex) {
   currentDirName[i] = '\0';
   currentIndex = getCurrentIndex(currentDirName, files, parentIndex);
 
-  if(path[i] == '\0') {
+  if (path[i] == '\0')
+  {
     return currentIndex;
-  }else if(currentIndex == 0x40) {
-    return 0x40;
-  }else{
+  }
+  else if (currentIndex == NOT_FOUND_INDEX)
+  {
+    return NOT_FOUND_INDEX;
+  }
+  else
+  {
     return idxPath(path + i + 1, files, currentIndex);
   }
 }
 
-char getCurrentIndex(char* name, char* files, char parentIndex) {
-  for(int i = 0; i < 64; i++) {
-    if(files[i * 16] == parentIndex) {
-      if(isSameString(name, files + (i * 16) + 2)) {
+char getCurrentIndex(char *name, char *files, char parentIndex)
+{
+  for (int i = 0; i < 64; i++)
+  {
+    if (files[i * 16] == parentIndex)
+    {
+      if (isSameString(name, files + (i * 16) + 2))
+      {
         return i;
       }
     }
   }
-  return 0x40; // not found
+  return NOT_FOUND_INDEX;
 }
 
-void writeFile(char* buffer, char* path, int *sectors, char parentIndex) {
-  int empty_entry, found, empty_map_sector, text_length, sector_needed;
-  int currentIndex, last_slash_index, i;
-  char map[512], files[1024];
-  char* iterator;
+void writeFile(char *buffer, char *path, int *sectors, char parentIndex)
+{
+  int found, text_length, sector_needed, sector_available;
+  int empty_entry_files, empty_entry_map, empty_entry_sectors, written_sector;
+  int filePathIndex, fileParentIndex, last_slash_idx, i;
+  char map[512], files[1024], sectors[512], parent_path[512], current_file_data[512];
+  char *iterator;
 
   // Baca sektor map dan dir
   readSector(map, 0x100);
   readSector(files, 0x101);
   readSector(files + 512, 0x102);
+  readSector(sectors, 0x103);
 
   // find index of last slash
   i = 0;
-  last_slash_index = 0;
+  last_slash_idx = UNDEFINE_INDEX;
   iterator = path;
-  while(*iterator) {
-    if(*iterator == '/') {
-      last_slash_index = i;
+  while (*iterator)
+  {
+    if (*iterator == '/')
+    {
+      last_slash_idx = i;
     }
     i++;
   }
@@ -212,65 +273,206 @@ void writeFile(char* buffer, char* path, int *sectors, char parentIndex) {
   *sectors = 0;
 
   // Cek file already exist or not
-  currentIndex = idxPath(path, files, parentIndex);
+  filePathIndex = idxPath(path, files, parentIndex);
 
-  if(currentIndex != 0x40){ // Found
+  if (filePathIndex != NOT_FOUND_INDEX) // Found
+  {
     *sectors = -1;
     printString("File sudah ada");
     return;
   }
 
   // Get file parent name path from 0 to last_slash_idx
-  for(i = 0; i < last_slash_index; i++) {
-    
+  parent_path[0] = '\0';
+  for (i = 0; i < last_slash_idx; i++)
+  {
+    parent_path[i] = path[i];
   }
-  
+  parent_path[i] = '\0';
 
-  // Cek direktori yang kosong
-  found = 0;
-  empty_entry = 0;
-  while(empty_entry < 64 && found == 0) {
-    if(files[empty_entry * 16] == 0x00) {
-      found = 1;
-    }else{
-      empty_entry++;
+  // Get parent path index
+  if (parent_path[0] == '\0')
+  {
+    fileParentIndex = parentIndex;
+  }
+  else
+  {
+    filePathIndex = idxPath(parent_path, files, parentIndex);
+    if (filePathIndex == NOT_FOUND_INDEX)
+    {
+      *sectors = -4;
+      printString("Folder tidak valid");
+      return;
+    }
+    else
+    {
+      fileParentIndex = filePathIndex;
     }
   }
 
-  if(found != 1) {
-    printString("Tidak ditemukan entry kosong");
-  }else{
-    // Count sector_needed
-    text_length = 0;
-    iterator = buffer;
-    while(*iterator) {
-      iterator++;
-      text_length++;
-    }
-    sector_needed = div(text_length, 512) + 1;
+  // Prcess if file not already exist and file directory valid
+  if (*sectors != -1 && *sectors != -4)
+  {
+    // Find empty_entry_files
+    found = FALSE;
+    empty_entry_files = 0;
 
-    // Count available sector
-    
+    while (empty_entry_files < 64 && !found)
+    {
+      if (files[(empty_entry_files * 16) + 2] == 0)
+      {
+        found = TRUE;
+      }
+      else
+      {
+        empty_entry_files++;
+      }
+    }
+
+    if (!found)
+    {
+      *sectors = -2;
+      printString("Tidak cukup entri di files");
+      return;
+    }
+    else
+    {
+      // Find empty_entry_sectors
+      found = FALSE;
+      empty_entry_sectors = 0;
+      while (empty_entry_sectors < 32 && !found)
+      {
+        if (sectors[empty_entry_sectors * 16] == 0)
+        {
+          found = TRUE;
+        }
+        else
+        {
+          empty_entry_sectors++;
+        }
+      }
+
+      if (!found)
+      {
+        *sectors = -3;
+        printString("Tidak cukup sektor kosong");
+        return;
+      }
+      else
+      {
+        // fill files sector => 1 byte (parent), 1 byte (index), 14 byte(character)
+        files[empty_entry_files * 16] = fileParentIndex;
+        files[(empty_entry_files * 16) + 1] = empty_entry_sectors;
+
+        i = 0;
+        while (i < 14 && path[last_slash_idx + 1 + i] != 0)
+        {
+          files[(empty_entry_files * 16) + 2 + i] = path[last_slash_idx + 1 + i];
+          i++;
+        }
+
+        while (i < 14)
+        {
+          files[(empty_entry_files * 16) + 2 + i] = '\0';
+          i++;
+        }
+
+        sector_needed = div(lengthString(buffer), 512) + 1;
+        if (sector_needed > 16)
+        {
+          *sectors = -3;
+          printString("Tidak cukup sektor kosong");
+          return;
+        }
+
+        // Find sector available
+        sector_available = 0;
+        i = 0;
+        while (i < 512)
+        {
+          if (map[i] == 0)
+          {
+            sector_available++;
+          }
+          i++;
+        }
+
+        // Compare sector needed and sector available
+        if (sector_available < sector_needed)
+        {
+          *sectors = -3;
+          printString("Tidak cukup sektor kosong");
+          return;
+        }
+        else
+        {
+          // Write to sector
+          written_sector = 0;
+          while (written_sector < sector_needed)
+          {
+            clear(current_file_data, 512);
+
+            i = 0;
+            while (i < 512 && buffer[written_sector * 512 + i] != 0)
+            {
+              current_file_data[i] = buffer[written_sector * 512 + i];
+              i++;
+            }
+
+            // Search available sector based on map
+            i = 0;
+            while (i < 512 && map[i] != 0)
+            {
+              i++;
+            }
+
+            writeSector(current_file_data, i);
+            map[i] = 0xFF; // Sektor sudah diisi
+            sectors[(empty_entry_sectors * 16) + written_sector] = i;
+
+            written_sector++;
+          }
+          *sectors = written_sector;
+        }
+      }
+    }
   }
+
+  // Write again to sector for changes
+  writeSector(map, 0x100);
+  writeSector(files, 0x101);
+  writeSector(files + 512, 0x102);
+  writeSector(sectors, 0x103);
 }
 
-void readFile(char* buffer, char* path, int *result, char parentIndex);
+void readFile(char *buffer, char *path, int *result, char parentIndex);
 
-void handleInterrupt21 (int AX, int BX, int CX, int DX) {
+void handleInterrupt21(int AX, int BX, int CX, int DX)
+{
   char AL, AH;
-  AL = (char) (AX);
-  AH = (char) (AX >> 8);
-  switch (AL) {
-    case 0x00:
-      printString(BX);
-      break;
-    case 0x01:
-      readString(BX);
-      break;
-    case 0x02:
-      readSector(BX, CX);
-      break;
-    default:
-      printString("Invalid interrupt");
+  AL = (char)(AX);
+  AH = (char)(AX >> 8);
+  switch (AL)
+  {
+  case 0x00:
+    printString(BX);
+    break;
+  case 0x01:
+    readString(BX);
+    break;
+  case 0x02:
+    readSector(BX, CX);
+    break;
+  case 0x03:
+    writeSector(BX, CX);
+    break;
+  case 0x04:
+    readFile(BX, CX, DX, AH);
+    break;
+  case 0x05:
+    writeFile(BX, CX, DX, AH);
+    break;
+  default:
+    printString("Invalid interrupt");
   }
 }
