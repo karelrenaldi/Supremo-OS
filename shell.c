@@ -2,16 +2,17 @@
 
 void ln(char* pathReference, char* filename, char currIdx) {
   char files[1024];
-  char pathReferenceIdx;
-  int i, emptyIdx, filenameIdx;
+  char pathReferenceIdx, filenameIdx;
+  int i, emptyIdx;
 
   interrupt(0x21, 2, files, 0x101, 0);
   interrupt(0x21, 2, files + 512, 0x102, 0);
 
   pathReferenceIdx = idxPath(pathReference, files, currIdx);
+  filenameIdx = idxPath(filename, files, currIdx);
 
-  if(idxPath == 0xFF) {
-    printString("Tidak bisa ln folder");
+  if(filenameIdx != 0x40) {
+    printString("File sudah ada!");
   }else if(idxPath == 0x40){
     printString("File tidak ditemukan");
   }else{
@@ -69,8 +70,14 @@ void cwd(char currIdx, char* currentDirectory) {
   currentDirectory[idx] = '$';
   currentDirectory[idx + 1] = ' ';
   currentDirectory[idx + 2] = 0;
-  printString(currentDirectory);
-  // interrupt(0x21, 0, currentDirectory, 0, 0);
+
+
+  i = 0;
+  while (currentDirectory[i] != 0)
+  {
+    interrupt(0x10, (0x0e << 8) + currentDirectory[i], 0x0, 0x0, 0x0);
+    i++;
+  }
 }
 
 void ls(char currentIndex){
@@ -105,8 +112,20 @@ void ls(char currentIndex){
 
 void runShell()
 {
+  int i = 0;
+  int flag;
+  char *string_input = "";
   char *currentDirectory = "";
-  cwd(0xFF, currentDirectory);
-  ln("iseng.txt", "hoho.txt", 0xFF);
-  ls(0xFF);
+  char *buffer = "";
+  char currentShellIdx = 0xFF;
+
+  // ln("iseng.txt", "iseng3.txt", currentShellIdx);
+  while (1)
+  {
+    cwd(currentShellIdx, currentDirectory);
+    interrupt(0x21, 1, string_input, 0, 0);
+    readFile(buffer, "iseng.txt", &flag, 0xFF);
+    ls(currentShellIdx);
+    printString(buffer);
+  }
 }

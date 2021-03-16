@@ -22,12 +22,14 @@ bochs -f if2230.config
  
 # echo Compile Kernel to Object Code with BCC
 # bcc -ansi -c -o kernel.o kernel.c
+# bcc -ansi -c -o shell.o shell.c
+# bcc -ansi -c -o utils.o utils.c
  
 # echo Compile ASM Kernel to Object Code with NASM
 # nasm -f as86 kernel.asm -o kernel_asm.o
  
 # echo Link Object Code with ld86
-# ld86 -o kernel -d kernel.o kernel_asm.o
+# ld86 -o kernel -d kernel.o kernel_asm.o shell.o utils.o
  
 # echo Kernel to Disk Image in Sector 1
 # dd if=kernel of=system.img bs=512 conv=notrunc seek=1

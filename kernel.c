@@ -16,6 +16,7 @@ int isSameString(char *str1, char *str2);
 int lengthString(char *str);
 void readString(char *string);
 
+
 char idxPath(char *path, char *files, char parentIndex);
 char getCurrentIndex(char *name, char *files, char parentIndex);
 
@@ -52,17 +53,9 @@ int main()
   // Print string
   handleInterrupt21(0x0, "<====== WELCOME =====>", 0x0, 0x0);
   runShell();
-  // printString("anjay anjay");
-  // readFile(buffer, "coba.txt", &flag, 0xFF);
+  // readFile(buffer, "iseng2.txt", &flag, 0xFF);
   // printString(buffer);
   // cwd(0xFF, buffer);
-
-
-  // Loop input
-  while (1)
-  {
-    handleInterrupt21(0x1, string_input, 0x0, 0x0);
-  }
 }
 
 void drawingImage()
@@ -79,6 +72,7 @@ void drawingImage()
     }
   }
 }
+
 
 int mod(int a, int m){
     while(a >= m){
@@ -98,24 +92,30 @@ int div(int a, int m){
     return res - 1;
 }
 
-void readString(char *string)
-{
-  int i = 0;
-  char input = 0x0;
-  while (input != 0x0d)
-  {
-    input = interrupt(0x16, 0x0, 0x0, 0x0, 0x0);
-    string[i] = input;
-    interrupt(0x10, (0x0e << 8) + input, 0x0, 0x0, 0x0);
+void readString(char* string) {
+   int i = 0, loop = 1;
+   char input;
+   while (loop) {
+      input = interrupt(0x16, 0x0, 0x00, 0x00, 0x00);
 
-    if (input == 0x0d)
-      interrupt(0x10, (0x0e << 8) + 10, 0x0, 0x0, 0x0);
-
-    i++;
-  }
-  string[i] = 0x0;
-  printString(string);
-  *string = "";
+      if(input == '\r') {
+        string[i] = '\0';
+        interrupt(0x10, (0x0E * 0x100) + '\n', 0x00, 0x00, 0x00);
+        interrupt(0x10, (0x0E * 0x100) + '\r', 0x00, 0x00, 0x00);
+        loop = 0;
+      }else if(input == '\b') {
+        if(i > 0) {
+          interrupt(0x10, (0x0E * 0x100) + '\b', 0x00, 0x00, 0x00);
+          interrupt(0x10, (0x0E * 0x100) + '\0', 0x00, 0x00, 0x00);
+          interrupt(0x10, (0x0E * 0x100) + '\b', 0x00, 0x00, 0x00);
+          i--;
+        }
+      }else{
+        string[i] = input;
+        interrupt(0x10, (0x0E * 0x100) + string[i], 0x00, 0x00, 0x00);
+        i++;
+      }
+    }
 }
 
 void clear(char *buffer, int length)
