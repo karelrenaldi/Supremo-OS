@@ -30,6 +30,7 @@ void readFile(char *buffer, char *path, int *result, char parentIndex);
 
 // shell.h
 void cwd(char parentIndex, char* buffer);
+void ls(char currentIndex);
 
 extern char imageFile;
 
@@ -98,6 +99,26 @@ void cwd(char parentIndex, char* buffer) {
   }
   interrupt(0x10, (0x0e << 8) + '$', 0x0, 0x0, 0x0);
   interrupt(0x10, (0x0e << 8) + ' ', 0x0, 0x0, 0x0);
+}
+
+void ls(char currentIndex){
+  char files[1024];
+  int i, j;
+
+  interrupt(0x21, 2, files, 0x101, 0);
+  interrupt(0x21, 2, files + 512, 0x102, 0);
+
+  for (i = 0; i < 64; i++){
+    j = 0;
+    
+    if(files[i*16] == currentIndex){
+      while(files[i*16 + 2 + j] != 0){
+        interrupt(0x10, (0x0e << 8) + files[i*16 + 2 + j], 0x0, 0x0, 0x0);
+        j++;
+      }
+      interrupt(0x10, (0x0e << 8) + '\n', 0x0, 0x0, 0x0);
+    }
+  }
 }
 
 void drawingImage()
