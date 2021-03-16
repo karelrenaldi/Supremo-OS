@@ -1,10 +1,11 @@
-#include "shell.h";
+#include "shell.h"
 
 #define MAX_CHAR 14
 #define FALSE 0
 #define TRUE 1
 #define NOT_FOUND_INDEX 0x40
 #define UNDEFINE_INDEX -1
+
 // math.h
 int mod(int a, int m);
 int div(int a, int m);
@@ -26,6 +27,9 @@ void readSector(char *buffer, int sector);
 void writeSector(char *buffer, int sector);
 void writeFile(char *buffer, char *path, int *sectors, char parentIndex);
 void readFile(char *buffer, char *path, int *result, char parentIndex);
+
+// shell.h
+void cwd(char parentIndex, char* buffer);
 
 extern char imageFile;
 
@@ -50,14 +54,50 @@ int main()
   handleInterrupt21(0x0, "<====== WELCOME =====>", 0x0, 0x0);
   // runShell();
   // printString("anjay anjay");
-  readFile(buffer, "coba.txt", &flag, 0xFF);
-  printString(buffer);
+  // readFile(buffer, "coba.txt", &flag, 0xFF);
+  // printString(buffer);
+  cwd(0xFF, buffer);
+
 
   // Loop input
   while (1)
   {
     handleInterrupt21(0x1, string_input, 0x0, 0x0);
   }
+}
+
+void cwd(char parentIndex, char* buffer) {
+  int neff = 0;
+  int i;
+  char pathIndexArray[128], files[1024];
+  char currentIndex = parentIndex;
+  char currentParentIndex;
+
+  printString("Hello this is from cwd");
+  if(parentIndex == 0xFF) {
+    interrupt(0x10, (0x0e << 8) + '/', 0x0, 0x0, 0x0);
+  }else{
+    interrupt(0x21, 2, files, 0x101, 0);
+    interrupt(0x21, 2, files + 512, 0x102, 0);
+
+    while((unsigned char)currentIndex != 0xFF) {
+      pathIndexArray[neff] = currentIndex;
+      currentParentIndex = files[currentIndex * 16];
+      currentIndex =  currentParentIndex;
+      neff++;
+    }
+
+    i = neff - 1;
+    while(i >= 0){
+      while(files[(pathIndexArray[i] * 16) + 2 + i] != '\0') {
+        interrupt(0x10, (0x0e << 8) + files[(pathIndexArray[i] * 16) + 2 + i], 0x0, 0x0, 0x0);
+      }
+      interrupt(0x10, (0x0e << 8) + '/', 0x0, 0x0, 0x0);
+      i--;
+    }
+  }
+  interrupt(0x10, (0x0e << 8) + '$', 0x0, 0x0, 0x0);
+  interrupt(0x10, (0x0e << 8) + ' ', 0x0, 0x0, 0x0);
 }
 
 void drawingImage()
@@ -211,9 +251,6 @@ char idxPath(char *path, char *files, char parentIndex)
 
 
   currentDirName[i] = '\0';
-  printString("=================");
-  printString(currentDirName);
-  printString("=================");
   currentIndex = getCurrentIndex(currentDirName, files, parentIndex);
 
   if (path[i] == '\0')

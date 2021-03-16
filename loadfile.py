@@ -95,7 +95,6 @@ if(fileSectorAvailableIndex != None):
         f4.write(bytes(sectors))
 
         print("Load file berhasil!!!!!")
-
     else:
         print("Tidak cukup sektor kosong")
 else:
