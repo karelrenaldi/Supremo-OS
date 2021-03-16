@@ -1,4 +1,39 @@
-#include "shell.h";
+#include "shell.h"
+
+void ln(char* pathReference, char* filename, char currIdx) {
+  char files[1024];
+  char pathReferenceIdx;
+  int i, emptyIdx, filenameIdx;
+
+  interrupt(0x21, 2, files, 0x101, 0);
+  interrupt(0x21, 2, files + 512, 0x102, 0);
+
+  pathReferenceIdx = idxPath(pathReference, files, currIdx);
+
+  if(idxPath == 0xFF) {
+    printString("Tidak bisa ln folder");
+  }else if(idxPath == 0x40){
+    printString("File tidak ditemukan");
+  }else{
+    for(i = 0; i < 64; i++) {
+      if(files[(i * 16) + 2] == 0) {
+        emptyIdx = i;
+        break;
+      }
+    }
+    files[emptyIdx * 16] = currIdx;
+    files[(emptyIdx * 16) + 1] = files[(pathReferenceIdx * 16) + 1];
+
+    i = 0;
+    while (i < 14 && filename[i] != 0){
+      files[(emptyIdx * 16) + 2 + i] = filename[i];
+      i++;
+    }
+
+    interrupt(0x21, 3, files, 0x101, 0);
+    interrupt(0x21, 3, files + 512, 0x102, 0);
+  }
+}
 
 void cwd(char currIdx, char* currentDirectory) {
   int i, idx = 0, neff = 0;
@@ -33,6 +68,9 @@ void cwd(char currIdx, char* currentDirectory) {
 
   currentDirectory[idx] = '$';
   currentDirectory[idx + 1] = ' ';
+  currentDirectory[idx + 2] = 0;
+  printString(currentDirectory);
+  // interrupt(0x21, 0, currentDirectory, 0, 0);
 }
 
 void ls(char currentIndex){
@@ -68,11 +106,7 @@ void ls(char currentIndex){
 void runShell()
 {
   char *currentDirectory = "";
-  interrupt(0x21, 0, "Hello From Shell1", 0, 0);
-  interrupt(0x21, 0, "Hello From Shell2", 0, 0);
   cwd(0xFF, currentDirectory);
-  interrupt(0x21, 0, "==========", 0, 0);
-  interrupt(0x21, 0, currentDirectory, 0, 0);
-  interrupt(0x21, 0, "==========", 0, 0);
+  ln("iseng.txt", "hoho.txt", 0xFF);
   ls(0xFF);
 }
