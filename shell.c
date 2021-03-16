@@ -8,10 +8,8 @@ void cwd(char currIdx, char* currentDirectory) {
 
   if(currIdx == 0xFF) {
     currentDirectory[idx++] = '/';
-    // interrupt(0x10, (0x0e << 8) + '/', 0x0, 0x0, 0x0);
   }else{
     currentDirectory[idx++] = '/';
-    // interrupt(0x10, (0x0e << 8) + '/', 0x0, 0x0, 0x0);
 
     interrupt(0x21, 2, files, 0x101, 0);
     interrupt(0x21, 2, files + 512, 0x102, 0);
@@ -27,26 +25,14 @@ void cwd(char currIdx, char* currentDirectory) {
     while(i >= 0){
       while(files[(pathIndexArray[i] * 16) + 2 + i] != '\0') {
         currentDirectory[idx++] = files[(pathIndexArray[i] * 16) + 2 + i];
-        // interrupt(0x10, (0x0e << 8) + files[(pathIndexArray[i] * 16) + 2 + i], 0x0, 0x0, 0x0);
       }
       currentDirectory[idx++] = '/';
-      // interrupt(0x10, (0x0e << 8) + '/', 0x0, 0x0, 0x0);
       i--;
     }
   }
 
   currentDirectory[idx] = '$';
   currentDirectory[idx + 1] = ' ';
-
-  // interrupt(0x21, 0, "=================", 0, 0);
-  interrupt(0x21, 0, currentDirectory, 0, 0);
-  interrupt(0x21, 0, "\n\r", 0, 0);
-  // interrupt(0x21, 0, "=================", 0, 0);
-
-  // interrupt(0x10, (0x0e << 8) + '$', 0x0, 0x0, 0x0);
-  // interrupt(0x10, (0x0e << 8) + ' ', 0x0, 0x0, 0x0);
-  // interrupt(0x10, (0x0e << 8) + '\n', 0x0, 0x0, 0x0);
-  // interrupt(0x10, (0x0e << 8) + '\r', 0x0, 0x0, 0x0);
 }
 
 void ls(char currentIndex){
@@ -82,8 +68,8 @@ void ls(char currentIndex){
 void runShell()
 {
   char *currentDirectory = "";
-
-  interrupt(0x21, 0, "Hello From Shell1\n\r", 0, 0);
+  interrupt(0x21, 0, "Hello From Shell1", 0, 0);
+  interrupt(0x21, 0, "Hello From Shell2", 0, 0);
   cwd(0xFF, currentDirectory);
   ls(0xFF);
 }
