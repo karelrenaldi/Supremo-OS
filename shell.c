@@ -1,4 +1,4 @@
-#include "shell.h";
+#include "shell.h"
 
 void cwd(char currIdx, char* currentDirectory) {
   int i, idx = 0, neff = 0;
@@ -86,4 +86,38 @@ void runShell()
   interrupt(0x21, 0, "Hello From Shell1\n\r", 0, 0);
   cwd(0xFF, currentDirectory);
   ls(0xFF);
+}
+
+//gatau harus ditaro dimana
+void checkLS(){
+  // readstring
+  char *string;
+  int i = 0;
+  char input = 0x0;
+  while (input != 0x0d)
+  {
+    input = interrupt(0x16, 0x0, 0x0, 0x0, 0x0);
+    string[i] = input;
+    interrupt(0x10, (0x0e << 8) + input, 0x0, 0x0, 0x0);
+
+    if (input == 0x0d)
+      interrupt(0x10, (0x0e << 8) + 10, 0x0, 0x0, 0x0);
+
+    i++;
+  }
+  string[i] = 0x0;
+
+  // cek input = ls apa ga
+  if (string[0] == 'l' && string[1] == 's' && string[2] == 0x0){
+    // printstring
+    i = 0;
+    char *outputstring = "ls dipanggil";
+    while (outputstring[i] != 0)
+    {
+      interrupt(0x10, (0x0e << 8) + *(outputstring + i), 0x0, 0x0, 0x0);
+      i++;
+    }
+    interrupt(0x10, (0x0e << 8) + '\r', 0x0, 0x0, 0x0);
+    interrupt(0x10, (0x0e << 8) + '\n', 0x0, 0x0, 0x0);
+  }
 }
