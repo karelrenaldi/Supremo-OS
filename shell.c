@@ -1,5 +1,41 @@
 #include "shell.h"
 
+void ln(char* pathReference, char* filename, char currIdx) {
+  char files[1024];
+  char pathReferenceIdx, filenameIdx;
+  int i, emptyIdx;
+
+  interrupt(0x21, 2, files, 0x101, 0);
+  interrupt(0x21, 2, files + 512, 0x102, 0);
+
+  pathReferenceIdx = idxPath(pathReference, files, currIdx);
+  filenameIdx = idxPath(filename, files, currIdx);
+
+  if(filenameIdx != 0x40) {
+    printString("File sudah ada!");
+  }else if(idxPath == 0x40){
+    printString("File tidak ditemukan");
+  }else{
+    for(i = 0; i < 64; i++) {
+      if(files[(i * 16) + 2] == 0) {
+        emptyIdx = i;
+        break;
+      }
+    }
+    files[emptyIdx * 16] = currIdx;
+    files[(emptyIdx * 16) + 1] = files[(pathReferenceIdx * 16) + 1];
+
+    i = 0;
+    while (i < 14 && filename[i] != 0){
+      files[(emptyIdx * 16) + 2 + i] = filename[i];
+      i++;
+    }
+
+    interrupt(0x21, 3, files, 0x101, 0);
+    interrupt(0x21, 3, files + 512, 0x102, 0);
+  }
+}
+
 void cwd(char currIdx, char* currentDirectory) {
   int i, idx = 0, neff = 0;
   char pathIndexArray[128], files[1024];
@@ -8,10 +44,8 @@ void cwd(char currIdx, char* currentDirectory) {
 
   if(currIdx == 0xFF) {
     currentDirectory[idx++] = '/';
-    // interrupt(0x10, (0x0e << 8) + '/', 0x0, 0x0, 0x0);
   }else{
     currentDirectory[idx++] = '/';
-    // interrupt(0x10, (0x0e << 8) + '/', 0x0, 0x0, 0x0);
 
     interrupt(0x21, 2, files, 0x101, 0);
     interrupt(0x21, 2, files + 512, 0x102, 0);
@@ -27,26 +61,23 @@ void cwd(char currIdx, char* currentDirectory) {
     while(i >= 0){
       while(files[(pathIndexArray[i] * 16) + 2 + i] != '\0') {
         currentDirectory[idx++] = files[(pathIndexArray[i] * 16) + 2 + i];
-        // interrupt(0x10, (0x0e << 8) + files[(pathIndexArray[i] * 16) + 2 + i], 0x0, 0x0, 0x0);
       }
       currentDirectory[idx++] = '/';
-      // interrupt(0x10, (0x0e << 8) + '/', 0x0, 0x0, 0x0);
       i--;
     }
   }
 
   currentDirectory[idx] = '$';
   currentDirectory[idx + 1] = ' ';
+  currentDirectory[idx + 2] = 0;
 
-  // interrupt(0x21, 0, "=================", 0, 0);
-  interrupt(0x21, 0, currentDirectory, 0, 0);
-  interrupt(0x21, 0, "\n\r", 0, 0);
-  // interrupt(0x21, 0, "=================", 0, 0);
 
-  // interrupt(0x10, (0x0e << 8) + '$', 0x0, 0x0, 0x0);
-  // interrupt(0x10, (0x0e << 8) + ' ', 0x0, 0x0, 0x0);
-  // interrupt(0x10, (0x0e << 8) + '\n', 0x0, 0x0, 0x0);
-  // interrupt(0x10, (0x0e << 8) + '\r', 0x0, 0x0, 0x0);
+  i = 0;
+  while (currentDirectory[i] != 0)
+  {
+    interrupt(0x10, (0x0e << 8) + currentDirectory[i], 0x0, 0x0, 0x0);
+    i++;
+  }
 }
 
 void ls(char currentIndex){
@@ -81,43 +112,20 @@ void ls(char currentIndex){
 
 void runShell()
 {
-  char *currentDirectory = "";
-
-  interrupt(0x21, 0, "Hello From Shell1\n\r", 0, 0);
-  cwd(0xFF, currentDirectory);
-  ls(0xFF);
-}
-
-//gatau harus ditaro dimana
-void checkLS(){
-  // readstring
-  char *string;
   int i = 0;
-  char input = 0x0;
-  while (input != 0x0d)
+  int flag;
+  char *string_input = "";
+  char *currentDirectory = "";
+  char *buffer = "";
+  char currentShellIdx = 0xFF;
+
+  ln("iseng.txt", "iseng2.txt", currentShellIdx);
+  while (1)
   {
-    input = interrupt(0x16, 0x0, 0x0, 0x0, 0x0);
-    string[i] = input;
-    interrupt(0x10, (0x0e << 8) + input, 0x0, 0x0, 0x0);
-
-    if (input == 0x0d)
-      interrupt(0x10, (0x0e << 8) + 10, 0x0, 0x0, 0x0);
-
-    i++;
-  }
-  string[i] = 0x0;
-
-  // cek input = ls apa ga
-  if (string[0] == 'l' && string[1] == 's' && string[2] == 0x0){
-    // printstring
-    i = 0;
-    char *outputstring = "ls dipanggil";
-    while (outputstring[i] != 0)
-    {
-      interrupt(0x10, (0x0e << 8) + *(outputstring + i), 0x0, 0x0, 0x0);
-      i++;
-    }
-    interrupt(0x10, (0x0e << 8) + '\r', 0x0, 0x0, 0x0);
-    interrupt(0x10, (0x0e << 8) + '\n', 0x0, 0x0, 0x0);
+    cwd(currentShellIdx, currentDirectory);
+    interrupt(0x21, 1, string_input, 0, 0);
+    readFile(buffer, "iseng.txt", &flag, 0xFF);
+    ls(currentShellIdx);
+    printString(buffer);
   }
 }

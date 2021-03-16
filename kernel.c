@@ -1,4 +1,5 @@
 #include "shell.h"
+#include "utils.h"
 
 #define MAX_CHAR 14
 #define FALSE 0
@@ -13,8 +14,8 @@ int div(int a, int m);
 // string.h
 int isSameString(char *str1, char *str2);
 int lengthString(char *str);
-void printString(char *string);
 void readString(char *string);
+
 
 char idxPath(char *path, char *files, char parentIndex);
 char getCurrentIndex(char *name, char *files, char parentIndex);
@@ -29,7 +30,7 @@ void writeFile(char *buffer, char *path, int *sectors, char parentIndex);
 void readFile(char *buffer, char *path, int *result, char parentIndex);
 
 // shell.h
-void cd(char* path, char* currentIndex);
+// void cd(char* path, char* currentIndex);
 
 extern char imageFile;
 
@@ -53,17 +54,9 @@ int main()
   // Print string
   handleInterrupt21(0x0, "<====== WELCOME =====>", 0x0, 0x0);
   runShell();
-  // printString("anjay anjay");
-  // readFile(buffer, "coba.txt", &flag, 0xFF);
+  // readFile(buffer, "iseng2.txt", &flag, 0xFF);
   // printString(buffer);
   // cwd(0xFF, buffer);
-
-
-  // Loop input
-  while (1)
-  {
-    handleInterrupt21(0x1, string_input, 0x0, 0x0);
-  }
 }
 
 void drawingImage()
@@ -80,6 +73,7 @@ void drawingImage()
     }
   }
 }
+
 
 int mod(int a, int m){
     while(a >= m){
@@ -99,37 +93,30 @@ int div(int a, int m){
     return res - 1;
 }
 
+void readString(char* string) {
+   int i = 0, loop = 1;
+   char input;
+   while (loop) {
+      input = interrupt(0x16, 0x0, 0x00, 0x00, 0x00);
 
-void printString(char *string)
-{
-  int i = 0;
-  while (string[i] != 0)
-  {
-    interrupt(0x10, (0x0e << 8) + *(string + i), 0x0, 0x0, 0x0);
-    i++;
-  }
-  interrupt(0x10, (0x0e << 8) + '\r', 0x0, 0x0, 0x0);
-  interrupt(0x10, (0x0e << 8) + '\n', 0x0, 0x0, 0x0);
-}
-
-void readString(char *string)
-{
-  int i = 0;
-  char input = 0x0;
-  while (input != 0x0d)
-  {
-    input = interrupt(0x16, 0x0, 0x0, 0x0, 0x0);
-    string[i] = input;
-    interrupt(0x10, (0x0e << 8) + input, 0x0, 0x0, 0x0);
-
-    if (input == 0x0d)
-      interrupt(0x10, (0x0e << 8) + 10, 0x0, 0x0, 0x0);
-
-    i++;
-  }
-  string[i] = 0x0;
-  printString(string);
-  *string = "";
+      if(input == '\r') {
+        string[i] = '\0';
+        interrupt(0x10, (0x0E * 0x100) + '\n', 0x00, 0x00, 0x00);
+        interrupt(0x10, (0x0E * 0x100) + '\r', 0x00, 0x00, 0x00);
+        loop = 0;
+      }else if(input == '\b') {
+        if(i > 0) {
+          interrupt(0x10, (0x0E * 0x100) + '\b', 0x00, 0x00, 0x00);
+          interrupt(0x10, (0x0E * 0x100) + '\0', 0x00, 0x00, 0x00);
+          interrupt(0x10, (0x0E * 0x100) + '\b', 0x00, 0x00, 0x00);
+          i--;
+        }
+      }else{
+        string[i] = input;
+        interrupt(0x10, (0x0E * 0x100) + string[i], 0x00, 0x00, 0x00);
+        i++;
+      }
+    }
 }
 
 void clear(char *buffer, int length)
@@ -171,101 +158,6 @@ void writeSector(char *buffer, int sector)
   int dx = mod(div(sector, 18), 2) << 8;
 
   interrupt(0x13, ax, buffer, cx, dx);
-}
-
-int lengthString(char *str)
-{
-  int i = 0;
-  while (str[i] != 0)
-  {
-    i++;
-  }
-  return i;
-}
-
-int isSameString(char *str1, char *str2)
-{
-  int i;
-  int lengthString1 = lengthString(str1);
-  int lengthString2 = lengthString(str2);
-
-  if (lengthString1 == lengthString2)
-  {
-    for (i = 0; i < lengthString1; i++)
-    {
-      if (str1[i] != str2[i])
-      {
-        return FALSE;
-      }
-    }
-    return TRUE;
-  }
-
-  return FALSE;
-}
-
-char idxPath(char *path, char *files, char parentIndex)
-{
-  int i = 0, j;
-  char currentDirName[MAX_CHAR], currentIndex;
-
-  while (i < MAX_CHAR && path[i] != '/' && path[i] != 0)
-  {
-    currentDirName[i] = path[i];
-    i++;
-  }
-
-
-  currentDirName[i] = '\0';
-  currentIndex = getCurrentIndex(currentDirName, files, parentIndex);
-
-  if (path[i] == '\0')
-  {
-    return currentIndex;
-  }
-  else if (currentIndex == NOT_FOUND_INDEX)
-  {
-    return NOT_FOUND_INDEX;
-  }
-  else
-  {
-    return idxPath(path + i + 1, files, currentIndex);
-  }
-}
-
-char getCurrentIndex(char *name, char *files, char parentIndex)
-{
-  int i;
-
-  if (name[0] == '.' && name[1] == 0)
-  {
-    return parentIndex;
-  }
-  else if (name[0] == '.' && name[1] == '.' && name[2] == 0)
-  {
-    if (parentIndex == 0xFF)
-    { // Root folder
-      return parentIndex;
-    }
-    else
-    {
-      return files[parentIndex * 16];
-    }
-  }
-
-  for (i = 0; i < 64; i++)
-  {
-    if (files[i * 16] == parentIndex)
-    {
-      printString("Masuk satu");
-      if (isSameString(name, files + (i * 16) + 2))
-      {
-        printString("Masuk dua");
-        return i;
-      }
-    }
-  }
-  return NOT_FOUND_INDEX;
 }
 
 void writeFile(char *buffer, char *path, int *sectors, char parentIndex)
@@ -485,7 +377,6 @@ void readFile(char *buffer, char *path, int *result, char parentIndex)
   readSector(files + 512, 0x102);
 
   currentIndex = idxPath(path, files, parentIndex);
-  printString("dapat");
   if (currentIndex != NOT_FOUND_INDEX)
   {
     entry_sector_idx = files[(currentIndex * 16) + 1];
@@ -550,23 +441,23 @@ void handleInterrupt21(int AX, int BX, int CX, int DX)
   }
 }
 
-void cd(char* path, char* currentIndex){
-  char files[1024];
-  char* filename;
-  interrupt(0x21, 2, files, 0x101, 0);
-  interrupt(0x21, 2, files + 512, 0x102, 0);
+// void cd(char* path, char* currentIndex){
+//   char files[1024];
+//   char* filename;
+//   interrupt(0x21, 2, files, 0x101, 0);
+//   interrupt(0x21, 2, files + 512, 0x102, 0);
 
-  int i = 0;
-  int j = 0;
-  while(path[i] != 0){
-    if(path[i] == '/'){
-      filename[j] = 0;
-      *currentIndex = getCurrentIndex(filename, files, currentIndex);
-      j = 0;
-    } else {
-      filename[j] = path[i];
-      j++;
-    }
-    i++;
-  }
-}
+//   int i = 0;
+//   int j = 0;
+//   while(path[i] != 0){
+//     if(path[i] == '/'){
+//       filename[j] = 0;
+//       *currentIndex = getCurrentIndex(filename, files, currentIndex);
+//       j = 0;
+//     } else {
+//       filename[j] = path[i];
+//       j++;
+//     }
+//     i++;
+//   }
+// }
