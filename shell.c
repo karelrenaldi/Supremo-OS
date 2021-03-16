@@ -119,7 +119,7 @@ void runShell()
   char *buffer = "";
   char currentShellIdx = 0xFF;
 
-  // ln("iseng.txt", "iseng3.txt", currentShellIdx);
+  ln("iseng.txt", "iseng2.txt", currentShellIdx);
   while (1)
   {
     cwd(currentShellIdx, currentDirectory);

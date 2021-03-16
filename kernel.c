@@ -30,6 +30,7 @@ void writeFile(char *buffer, char *path, int *sectors, char parentIndex);
 void readFile(char *buffer, char *path, int *result, char parentIndex);
 
 // shell.h
+// void cd(char* path, char* currentIndex);
 
 extern char imageFile;
 
@@ -439,3 +440,24 @@ void handleInterrupt21(int AX, int BX, int CX, int DX)
     printString("Invalid interrupt");
   }
 }
+
+// void cd(char* path, char* currentIndex){
+//   char files[1024];
+//   char* filename;
+//   interrupt(0x21, 2, files, 0x101, 0);
+//   interrupt(0x21, 2, files + 512, 0x102, 0);
+
+//   int i = 0;
+//   int j = 0;
+//   while(path[i] != 0){
+//     if(path[i] == '/'){
+//       filename[j] = 0;
+//       *currentIndex = getCurrentIndex(filename, files, currentIndex);
+//       j = 0;
+//     } else {
+//       filename[j] = path[i];
+//       j++;
+//     }
+//     i++;
+//   }
+// }
