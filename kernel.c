@@ -5,18 +5,20 @@
 #define TRUE 1
 #define NOT_FOUND_INDEX 0x40
 #define UNDEFINE_INDEX -1
-
+// math.h
 int mod(int a, int m);
 int div(int a, int m);
+
+// string.h
 int isSameString(char *str1, char *str2);
 int lengthString(char *str);
+void printString(char *string);
+void readString(char *string);
 
 char idxPath(char *path, char *files, char parentIndex);
 char getCurrentIndex(char *name, char *files, char parentIndex);
 
 void handleInterrupt21(int AX, int BX, int CX, int DX);
-void printString(char *string);
-void readString(char *string);
 void clear(char *buffer, int length);
 void drawingBox();
 void drawingImage();
