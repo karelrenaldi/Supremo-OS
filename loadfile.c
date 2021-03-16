@@ -1,167 +1,183 @@
 #include <stdio.h>
-
-int main(int argc, char* argv[]){
-    int idx;
-    int fileIdx;
-    int countSector = 0;
-
-    // Check argc
-    if(argc < 2){
-        printf("Specify a file to load\n");
-        return;
+#include <string.h>
+ 
+ 
+char getDirIndex(char* name, char* dir, char parentIndex) {
+ 
+    int i;
+    if (!strcmp(name, ".")) {
+        return parentIndex;
+    } 
+    if (!strcmp(name, "..")) {
+        if (parentIndex == 0xFF)
+            return 0xFF;
+        return dir[parentIndex * 0x10];
     }
-
-    // Open the file (r mode)
-    FILE* loadFile;
-    loadFile = fopen(argv[1], "r");
-
-    // File not found
-    if(loadFile == 0){
-        printf("File not found\n");
-        return;
-    }
-    
-    // Open system image (r+ mode)
-    FILE* system;
-    system = fopen("system.img", "r+");
-
-    // System not found
-    if(system == 0){
-        printf("system.img not found\n");
-        return;
-    }
-
-    // Load map
-    char map[512];
-    fseek(system, 512 * 0x100, SEEK_SET);
-    
-    for(idx = 0; idx < 512; idx++){
-        map[idx] = fgetc(system);
-    }
-
-    // Load file list
-    char files[1024];
-    fseek(system, 512 * 0x101, SEEK_SET);
-    
-    for(idx = 0; idx < 1024; idx++){
-        files[idx] = fgetc(system);
-    }
-    
-    // Load sector list
-    char sector[512];
-    fseek(system, 512 * 0x103, SEEK_SET);
-    
-    for(idx = 0; idx < 512; idx++){
-     sector[idx] = fgetc(system);
-    }
-
-    // Search for a free entry in files
-    for(idx = 0; idx < 1024; idx += 16){
-        if(files[idx + 2] == 0){break;}
-    }
-
-    // Check if entry is found
-    if(idx == 1024){
-        printf("Not enough room in files\n");
-        return;
-    }
-
-    // Set dirIdx to idx of entry
-    fileIdx = idx;
-
-    // Fill 00s to name field
-    for(idx = 0; idx < 14; idx++){
-        files[idx + fileIdx + 2] = 0x00;
-    }
-
-    // Copy the name to the field
-    for(idx = 0; idx < 14; idx++){
-        if(argv[2][idx] == 0){break;}
-        files[fileIdx + idx + 2] = argv[2][idx];
-    }
-    
-    // Find free entry in sectors
-    for(idx = 0; idx < 32; idx++){
-     if(sector[idx * 16] == 0){break;}
-    }
-    
-    // Check if entry is found
-    if(idx == 32){
-     printf("Not enough room in sectors\n");
-     return;
-    }
-    
-    int idxSect = idx * 16;
-    files[fileIdx + 1] = idx;
-    files[fileIdx] = 0xFF;
-
-    // Search for free sectors
-    // Add these sectors to the file
-
-    while(!feof(loadFile)){
-        if(countSector == 16){
-            printf("Not enough space in directory entry for the file\n");
-            return;
-        }
-
-        // Search for a free entry in map
-        for(idx = 0; idx < 256; idx++){
-            if(map[idx] == 0){break;}
-        }
-
-        // Check if entry is found
-        if(idx == 256){
-            printf("Not enough room for the file\n");
-            return;
-        }
-
-        // Mark the entry as used
-        map[idx] = 0xFF;
-
-        // Mark the sector in directory
-        sector[idxSect] = idx;
-        idxSect++;
-        countSector++;
-
-        printf("Loaded %s to sector %d\n", argv[2], idx);
-
-        // Move and write the sector
-        fseek(system, idx * 512, SEEK_SET);
-        for(idx = 0; idx < 512; idx++){
-            if(feof(loadFile)){
-                fputc(0x0, system);
-                break;
-            }
-            else{
-                char newChar = fgetc(loadFile);
-                fputc(newChar, system);
+    for (i = 0; i < 1024; i = i + 0x10) {
+        if (dir[i] == parentIndex) {
+            if (!strcmp(name, dir + (i + 2)) || !strncmp(name, dir + (i + 2), 12)) {
+                return i / 0x10;
             }
         }
-    }
-
-    // Write map and directory to system
-    fseek(system, 512 * 0x100, SEEK_SET);
-
-    for(idx = 0; idx < 512; idx++){
-        fputc(map[idx], system);
-    }
+    } 
+    return 0xFE; // not found
     
-    fseek(system, 512 * 0x101, SEEK_SET);
-
-    for(idx = 0; idx < 1024; idx++){
-        fputc(files[idx], system);
-    }
-
-    fseek(system, 512 * 0x103, SEEK_SET);
-    
-    for(idx = 0; idx < 512 * 2; idx++){
-        fputc(sector[idx], system);
-    }
-
-    // Close the opened files
-    fclose(loadFile);
-    fclose(system);
-
-    return 0;
 }
+ 
+char getPathIndex(char* path, char* dir, char parentIndex) {
+    int i, j, finalDir;
+    char searchIndex;
+    char temp[15];
+    finalDir = 0;
+ 
+    for (i = 0; i < 14 && path[i] != '/' && path[i] != '\0'; i++) {
+        temp[i] = path[i];
+    }
+    if (path[i] == '\0')
+        finalDir = 1;
+    temp[i] = 0;
+    j = i + 1;
+    searchIndex = getDirIndex(temp, dir, parentIndex);
+    if (searchIndex == 0xFE) {
+        return 0xFE;
+    }
+    if (finalDir) {
+        return searchIndex;
+    }
+    return getPathIndex(path + j, dir, searchIndex);
+}
+ 
+void main(int argc, char* argv[]) {
+  int i;
+ 
+  if (argc < 2) {
+    printf("Specify file name to load\n");
+    return;
+  }
+ 
+  // open the source file
+  FILE* loadFil;
+  loadFil = fopen(argv[1], "r");
+  if (loadFil == 0) {
+    printf("File not found\n");
+    return;
+  }
+ 
+  // open the floppy image
+  FILE* floppy;
+  floppy = fopen("system.img", "r+");
+  if (floppy == 0) {
+    printf("system.img not found\n");
+    return;
+  }
+ 
+  // load the disk map
+  char map[512];
+  fseek(floppy, 512 * 0x100, SEEK_SET);
+  for (i = 0; i < 512; i++) map[i] = fgetc(floppy);
+ 
+  // load the directory
+  char dir[1024];
+  fseek(floppy, 512 * 0x101, SEEK_SET);
+  for (i = 0; i < 1024; i++) dir[i] = fgetc(floppy);
+ 
+  // load the file sector indices
+  char files[512];
+  fseek(floppy, 512 * 0x103, SEEK_SET);
+  for (i = 0; i < 512; i++) files[i] = fgetc(floppy);
+  
+  // find a free entry in the directory
+  for (i = 0; i < 1024; i = i + 0x10)
+    if (dir[i] == 0 && dir[i + 1] == 0 && dir[i + 2] == 0) break;
+  if (i == 1024) {
+    printf("Not enough room in directory\n");
+    return;
+  }
+  int dirindex = i;
+ 
+  // find a empty file entry in files
+  for (i = 0; i < 512; i = i + 0x10)
+    if (files[i] == 0) break;
+  if (i == 512) {
+    printf("Not enough room in file entry list\n");
+    return;
+  }
+  int fileindex = i;
+ 
+ 
+  if (argc > 2) { 
+    char parentindex = getPathIndex(argv[2], dir, 0xFF);
+    if (parentindex == 0xFE) {
+      printf("Path not found");
+      return;
+    }
+    dir[dirindex] = (char) (parentindex);
+  } else {
+    // set parent index with 0xFF;
+    dir[dirindex] = 0xFF;
+  }
+  // set file index
+  dir[dirindex + 1] = fileindex / 0x10;
+  // fill the name field with 00s first
+  for (i = 0; i < 14; i++) dir[dirindex + 2 + i] = 0x00;
+  // copy the name over
+  for (i = 0; i < 14; i++) {
+    if (argv[1][i] == 0) break;
+    dir[dirindex + 2 + i] = argv[1][i];
+  } 
+ 
+  // find free sectors and add them to the file
+  int sectcount = 0;
+  while (!feof(loadFil)) {
+    if (sectcount == 20) {
+      printf("Not enough space in directory entry for file\n");
+      return;
+    }
+ 
+    // find a free map entry
+    for (i = 0; i < 256; i++)
+      if (map[i] == 0) break;
+    if (i == 256) {
+      printf("Not enough room for file\n");
+      return;
+    }
+ 
+    // mark the map entry as taken
+    map[i] = 0xFF;
+    // mark the sector in the directory entry
+    files[fileindex] = i;
+    fileindex++;
+    sectcount++;
+ 
+    printf("Loaded %s to sector %d\n", argv[1], i);
+ 
+    // move to the sector and write to it
+    fseek(floppy, i * 512, SEEK_SET);
+    for (i = 0; i < 512; i++) {
+      if (feof(loadFil)) {
+        fputc(0x0, floppy);
+        break;
+      } else {
+        char c = fgetc(loadFil);
+        fputc(c, floppy);
+      }
+    }
+  }
+ 
+  // write the map and directory back to the floppy image
+  fseek(floppy, 512 * 0x100, SEEK_SET);
+  for (i = 0; i < 512; i++) fputc(map[i], floppy);
+ 
+  fseek(floppy, 512 * 0x101, SEEK_SET);
+  for (i = 0; i < 1024; i++) fputc(dir[i], floppy);
+ 
+ 
+  fseek(floppy, 512 * 0x103, SEEK_SET);
+  for (i = 0; i < 512; i++) fputc(files[i], floppy);
+ 
+  fclose(floppy);
+  fclose(loadFil);
+}
+ 
+ 
 

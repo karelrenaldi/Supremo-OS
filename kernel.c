@@ -35,11 +35,11 @@ int main()
   makeInterrupt21();
 
   // Make graphic mode
-  interrupt(0x10, 0x13, 0x0, 0x0, 0x0);
-  drawingImage();
+  // interrupt(0x10, 0x13, 0x0, 0x0, 0x0);
+  // drawingImage();
 
   // Enter listener
-  handleInterrupt21(0x1, string_input, 0x0, 0x0);
+  // handleInterrupt21(0x1, string_input, 0x0, 0x0);
 
   // Back to text mode
   interrupt(0x10, 0x03, 0x0, 0x0, 0x0);
@@ -48,7 +48,12 @@ int main()
   handleInterrupt21(0x0, "<====== WELCOME =====>", 0x0, 0x0);
   // runShell();
   readFile(buffer, "coba.txt", &flag, 0xFF);
-  printString(buffer);
+  printString("xxxxxxxxxxxxxxxxxxxxx");
+  interrupt(0x10, (0x0e << 8) + *(buffer), 0x0, 0x0, 0x0);
+  interrupt(0x10, (0x0e << 8) + *(buffer + 1), 0x0, 0x0, 0x0);
+  interrupt(0x10, (0x0e << 8) + *(buffer + 2), 0x0, 0x0, 0x0);
+  printString("xxxxxxxxxxxxxxxxxxxxx");
+  // printString(buffer);
 
   // Loop input
   while (1)
@@ -72,29 +77,24 @@ void drawingImage()
   }
 }
 
-int mod(int a, int m)
-{
-  int res = a;
+int mod(int a, int m){
+    while(a >= m){
+        a -= m;
+    }
 
-  while (res >= m)
-  {
-    res = res - m;
-  }
-
-  return res;
+    return a;
 }
 
-int div(int a, int m)
-{
-  int res = 0;
+int div(int a, int m){
+    int res = 0;
 
-  while (res * m <= a)
-  {
-    res += 1;
-  }
+    while(res*m <=a){
+        res++;
+    }
 
-  return res;
+    return res - 1;
 }
+
 
 void printString(char *string)
 {
@@ -153,13 +153,11 @@ void drawingBox()
 
 void readSector(char *buffer, int sector)
 {
-  interrupt(
-        0x13,
-        0x0201,
-        buffer,
-        div(sector, 36) << 8 | (mod(sector, 18) + 1),
-        mod(div(sector, 18), 2) << 8
-    );
+  int ax = (0x02 << 8) + 0x1;
+  int cx = (div(sector, 36) << 8) + (mod(sector, 18) + 1);
+  int dx = mod(div(sector, 18), 2) << 8;
+
+  interrupt(0x13, ax, buffer, cx, dx);
 }
 
 void writeSector(char *buffer, int sector)
@@ -186,11 +184,6 @@ int isSameString(char *str1, char *str2)
   int i;
   int lengthString1 = lengthString(str1);
   int lengthString2 = lengthString(str2);
-
-  printString("Length 1");
-  printString(lengthString1);
-  printString("Length 2");
-  printString(lengthString2);
 
   if (lengthString1 == lengthString2)
   {
@@ -220,8 +213,10 @@ char idxPath(char *path, char *files, char parentIndex)
 
 
   currentDirName[i] = '\0';
+  printString("=================");
   printString(currentDirName);
-  currentIndex = getCurrentIndex(currentDirName, &files, parentIndex);
+  printString("=================");
+  currentIndex = getCurrentIndex(currentDirName, files, parentIndex);
 
   if (path[i] == '\0')
   {
@@ -257,17 +252,14 @@ char getCurrentIndex(char *name, char *files, char parentIndex)
     }
   }
 
-  printString("Hello");
-  printString(lengthString(files));
-  // printString(files[0] == parentIndex);
-  printString("Hello");
-
   for (i = 0; i < 64; i++)
   {
     if (files[i * 16] == parentIndex)
     {
+      printString("Masuk satu");
       if (isSameString(name, files + (i * 16) + 2))
       {
+        printString("Masuk dua");
         return i;
       }
     }
@@ -487,17 +479,8 @@ void readFile(char *buffer, char *path, int *result, char parentIndex)
   char sectors[512];
   char currentIndex;
 
-  // interrupt(0x21, 0x02, files, 0x101, 0);
-  // interrupt(0x21, 0x02, files + 512, 0x102, 0);
   readSector(files, 0x101);
   readSector(files + 512, 0x102);
-
-  if(files[0] == 0xFF) {
-    printString("HELLO ANJING BABI");
-  }
-  printString("==============");
-  interrupt(0x10, (0x0e << 8) + *(files), 0x0, 0x0, 0x0);
-  printString("==============");
 
   currentIndex = idxPath(path, files, parentIndex);
   if (currentIndex != NOT_FOUND_INDEX)
