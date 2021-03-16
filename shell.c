@@ -71,5 +71,8 @@ void runShell()
   interrupt(0x21, 0, "Hello From Shell1", 0, 0);
   interrupt(0x21, 0, "Hello From Shell2", 0, 0);
   cwd(0xFF, currentDirectory);
+  interrupt(0x21, 0, "==========", 0, 0);
+  interrupt(0x21, 0, currentDirectory, 0, 0);
+  interrupt(0x21, 0, "==========", 0, 0);
   ls(0xFF);
 }
