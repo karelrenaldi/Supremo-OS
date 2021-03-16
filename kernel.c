@@ -30,7 +30,7 @@ extern char imageFile;
 int main()
 {
   char *string_input = "";
-  char *buffer;
+  char *buffer = "";
   int flag;
   makeInterrupt21();
 
@@ -47,13 +47,9 @@ int main()
   // Print string
   handleInterrupt21(0x0, "<====== WELCOME =====>", 0x0, 0x0);
   // runShell();
+  // printString("anjay anjay");
   readFile(buffer, "coba.txt", &flag, 0xFF);
-  printString("xxxxxxxxxxxxxxxxxxxxx");
-  interrupt(0x10, (0x0e << 8) + *(buffer), 0x0, 0x0, 0x0);
-  interrupt(0x10, (0x0e << 8) + *(buffer + 1), 0x0, 0x0, 0x0);
-  interrupt(0x10, (0x0e << 8) + *(buffer + 2), 0x0, 0x0, 0x0);
-  printString("xxxxxxxxxxxxxxxxxxxxx");
-  // printString(buffer);
+  printString(buffer);
 
   // Loop input
   while (1)
@@ -477,12 +473,14 @@ void readFile(char *buffer, char *path, int *result, char parentIndex)
 
   char files[1024];
   char sectors[512];
+  char iseng[512];
   char currentIndex;
 
   readSector(files, 0x101);
   readSector(files + 512, 0x102);
 
   currentIndex = idxPath(path, files, parentIndex);
+  printString("dapat");
   if (currentIndex != NOT_FOUND_INDEX)
   {
     entry_sector_idx = files[(currentIndex * 16) + 1];
@@ -501,7 +499,9 @@ void readFile(char *buffer, char *path, int *result, char parentIndex)
 
       while (i < 16 && sectors[entry_sector_idx + i] != 0)
       {
+        clear(iseng, 512);
         readSector(buffer + (i * 512), sectors[entry_sector_idx + i]);
+        readSector(iseng, sectors[entry_sector_idx + i]);
         i++;
       }
       *result = 0;
