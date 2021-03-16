@@ -40,22 +40,22 @@ int main()
   makeInterrupt21();
 
   // Make graphic mode
-  // interrupt(0x10, 0x13, 0x0, 0x0, 0x0);
-  // drawingImage();
+  interrupt(0x10, 0x13, 0x0, 0x0, 0x0);
+  drawingImage();
 
   // Enter listener
-  // handleInterrupt21(0x1, string_input, 0x0, 0x0);
+  handleInterrupt21(0x1, string_input, 0x0, 0x0);
 
   // Back to text mode
   interrupt(0x10, 0x03, 0x0, 0x0, 0x0);
 
   // Print string
   handleInterrupt21(0x0, "<====== WELCOME =====>", 0x0, 0x0);
-  // runShell();
+  runShell();
   // printString("anjay anjay");
   // readFile(buffer, "coba.txt", &flag, 0xFF);
   // printString(buffer);
-  cwd(0xFF, buffer);
+  // cwd(0xFF, buffer);
 
 
   // Loop input

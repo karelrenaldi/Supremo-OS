@@ -1,21 +1,19 @@
 #include "shell.h";
 
-void runShell()
-{
-    interrupt(0x21, 0, "Hello From Shell", 0, 0);
-}
-
-void cwd(char parentIndex, char* buffer) {
-  int neff = 0;
-  int i;
+void cwd(char parentIndex, char* currentDirectory) {
+  int i, idx = 0, neff = 0;
   char pathIndexArray[128], files[1024];
   char currentIndex = parentIndex;
   char currentParentIndex;
 
   printString("Hello this is from cwd");
   if(parentIndex == 0xFF) {
+    currentDirectory[idx++] = '/';
     interrupt(0x10, (0x0e << 8) + '/', 0x0, 0x0, 0x0);
   }else{
+    currentDirectory[idx++] = '/';
+    interrupt(0x10, (0x0e << 8) + '/', 0x0, 0x0, 0x0);
+
     interrupt(0x21, 2, files, 0x101, 0);
     interrupt(0x21, 2, files + 512, 0x102, 0);
 
@@ -37,6 +35,8 @@ void cwd(char parentIndex, char* buffer) {
   }
   interrupt(0x10, (0x0e << 8) + '$', 0x0, 0x0, 0x0);
   interrupt(0x10, (0x0e << 8) + ' ', 0x0, 0x0, 0x0);
+  interrupt(0x10, (0x0e << 8) + '\n', 0x0, 0x0, 0x0);
+  interrupt(0x10, (0x0e << 8) + '\r', 0x0, 0x0, 0x0);
 }
 
 void ls(char currentIndex){
@@ -64,6 +64,16 @@ void ls(char currentIndex){
       }
       
       interrupt(0x10, (0x0e << 8) + '\n', 0x0, 0x0, 0x0);
+      interrupt(0x10, (0x0e << 8) + '\r', 0x0, 0x0, 0x0);
     }
   }
+}
+
+void runShell()
+{
+  char *currentDirectory = "";
+
+  interrupt(0x21, 0, "Hello From Shell1", 0, 0);
+  cwd(0xFF, currentDirectory);
+  ls(0xFF);
 }
