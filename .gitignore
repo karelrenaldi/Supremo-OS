@@ -1,7 +1,0 @@
-image
-bochsout.txt
-bootloader
-if2230.config
-kernel_asm.o
-kernel.o
-system.img
