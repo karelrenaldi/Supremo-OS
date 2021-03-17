@@ -10,7 +10,7 @@ map = bytearray(f2.read())
 files = bytearray(f3.read())
 sectors = bytearray(f4.read())
 
-path = "iseng.txt"
+path = "coba.txt"
 
 f5 = open(path, 'rb')
 
