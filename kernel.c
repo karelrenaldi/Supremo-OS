@@ -53,6 +53,7 @@ int main()
 
   // Print string
   handleInterrupt21(0x0, "<====== WELCOME =====>", 0x0, 0x0);
+  writeFile("ini testing", "testing.txt", &flag, 0xFF);
   runShell();
 }
 
