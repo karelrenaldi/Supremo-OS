@@ -16,7 +16,7 @@ void ln(char* pathReference, char* filename, char currIdx) {
 
   if(filenameIdx != 0x40) {
     printString("File sudah ada!");
-  }else if(idxPath == 0x40){
+  }else if(pathReferenceIdx == 0x40){
     printString("File tidak ditemukan");
   }else{
     for(i = 0; i < 64; i++) {
