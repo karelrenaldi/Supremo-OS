@@ -110,6 +110,24 @@ void ls(char currentIndex){
   }
 }
 
+void cat(char* pathReference, char currIdx) {
+  int status;
+  char fileBuffer[20 * 512];
+  if (*pathReference) {
+    interrupt(0x21, 0x4 | (currIdx) << 8, fileBuffer, pathReference, &status);
+    if (status == 0) {
+      interrupt(0x21, 0x0, fileBuffer, 0x0, 0x0);
+      interrupt(0x21, 0x0, "\r\n", 0x0, 0x0);
+    }
+    else {
+      interrupt(0x21, 0x0, "Tidak dapat membaca file.\r\n", 0x0, 0x0);
+    }
+  }
+  else {
+    interrupt(0x21, 0x0, "Tidak dapat membaca file. \r\n", 0x0, 0x0);
+  }
+}
+
 void runShell()
 {
   int i = 0;
