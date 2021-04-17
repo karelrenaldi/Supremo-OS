@@ -1,5 +1,5 @@
 #include "shell.h"
-#include "utils.h"
+#include "../utils/utils.h"
 
 char currentShellIdx = 0xFF;
 

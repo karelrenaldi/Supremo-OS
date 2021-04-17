@@ -1,53 +1,6 @@
 #include "utils.h"
-
-#define MAX_CHAR 14
-#define FALSE 0
-#define TRUE 1
-#define NOT_FOUND_INDEX 0x40
-#define UNDEFINE_INDEX -1
-
-void printString(char *string)
-{
-  int i = 0;
-  while (string[i] != 0)
-  {
-    interrupt(0x10, (0x0e << 8) + string[i], 0x0, 0x0, 0x0);
-    i++;
-  }
-  interrupt(0x10, (0x0e << 8) + '\n', 0x0, 0x0, 0x0);
-  interrupt(0x10, (0x0e << 8) + '\r', 0x0, 0x0, 0x0);
-}
-
-int lengthString(char *str)
-{
-  int i = 0;
-  while (str[i] != 0)
-  {
-    i++;
-  }
-  return i;
-}
-
-int isSameString(char *str1, char *str2)
-{
-  int i;
-  int lengthString1 = lengthString(str1);
-  int lengthString2 = lengthString(str2);
-
-  if (lengthString1 == lengthString2)
-  {
-    for (i = 0; i < lengthString1; i++)
-    {
-      if (str1[i] != str2[i])
-      {
-        return FALSE;
-      }
-    }
-    return TRUE;
-  }
-
-  return FALSE;
-}
+#include "../definition/definition.h"
+#include "../string/string.h"
 
 char idxPath(char *path, char *files, char parentIndex)
 {
