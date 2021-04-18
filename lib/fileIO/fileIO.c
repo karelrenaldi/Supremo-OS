@@ -1,3 +1,6 @@
+#include "fileIO.h"
+#include "../definition/definition.h"
+
 void writeFile(char *buffer, char *path, int *sectorsFlag, char parentIndex)
 {
   int found, text_length, sector_needed, sector_available;
@@ -230,4 +233,44 @@ void readFile(char *buffer, char *path, int *result, char parentIndex)
             *result = 0;
         }
     }
+}
+
+void removeFile(char* path, int* result, char parentIndex){
+  char map[512], files[1024], sectors[512];
+  char filePathIndex, sector;
+  int i;
+
+  // Baca sektor map dan dir
+  readSector(map, 0x100);
+  readSector(files, 0x101);
+  readSector(files + 512, 0x102);
+  readSector(sectors, 0x103);
+
+  filePathIndex = idxPath(path, files, parentIndex);
+
+  if (filePathIndex == NOT_FOUND_INDEX) // Found
+  {
+    printString("File tidak ada");
+    return;
+  }
+
+  int i = 0;
+  sector = files[filePathIndex*16 + 1];
+  sector = files[filePathIndex*16 + 1];
+  i = 0;
+
+  while(i<16 && sectors[sector*16+1] != 0x00){
+      map[sectors[sector*16+1]] = 0x00;
+      sectors[sector*16 + 1] = 0x00;
+      i++;
+  }
+
+  for(i=0; i<16; i++){
+      files[filePathIndex*16+i] = 0x00;
+  }
+
+  writeSector(map, 0x100);
+  writeSector(sector, 0x103);
+  writeSector(files, 0x101);
+  writeSector(files+512, 0x102);
 }

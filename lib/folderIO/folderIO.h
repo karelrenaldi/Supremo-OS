@@ -2,6 +2,7 @@
 #define __FOLDER__
 
 void createDir(char* filename, int* flag, char currentShellIdx);
+void listFile(char currentIndex);
 // delete
 
 #endif
