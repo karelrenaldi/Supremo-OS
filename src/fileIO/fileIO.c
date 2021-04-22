@@ -200,67 +200,6 @@ void writeFile(char *buffer, char *path, int *sectorsFlag, char parentIndex)
   printString("berhasil writefile");
 }
 
-void swap(int *xp, int *yp) 
-{ 
-  int temp = *xp; 
-  *xp = *yp; 
-  *yp = temp; 
-}
-
-
-void reverse(char str[], int length) { 
-  int start = 0; 
-  int end = length -1; 
-  while (start < end) 
-  { 
-    swap(*(str+start), *(str+end)); 
-    start++; 
-    end--; 
-  } 
-} 
-
-
-char* itoa(int num, char* str, int base) 
-{ 
-    int i = 0; 
-    int isNegative = 0; 
-  
-    /* Handle 0 explicitely, otherwise empty string is printed for 0 */
-    if (num == 0) 
-    { 
-        str[i++] = '0'; 
-        str[i] = '\0'; 
-        return str; 
-    } 
-  
-    // In standard itoa(), negative numbers are handled only with  
-    // base 10. Otherwise numbers are considered unsigned. 
-    if (num < 0 && base == 10) 
-    { 
-        isNegative = 1; 
-        num = -num; 
-    } 
-  
-    // Process individual digits 
-    while (num != 0) 
-    { 
-        int rem = mod(num, base); 
-        str[i++] = (rem > 9)? (rem-10) + 'a' : rem + '0'; 
-        num = num/base; 
-    } 
-  
-    // If number is negative, append '-' 
-    if (isNegative == 1) 
-        str[i++] = '-'; 
-  
-    str[i] = '\0'; // Append string terminator 
-  
-    // Reverse the string 
-    // reverse(str, i); 
-  
-    return str; 
-} 
-
 void readFile(char *buffer, char *path, int *result, char parentIndex)
 {
   char files[1024];
@@ -274,18 +213,9 @@ void readFile(char *buffer, char *path, int *result, char parentIndex)
   readSector(files + 512, 0x102);
   readSector(sectors, 0x103);
 
-  printString("===============");
-  printString(path);
-  printString("===============");
-
-  printString("==============");
-  printString(itoa(0xFF, tolol, 10));
-  printString("==============");
-
   fileSectorIdx = idxPath(path, files, parentIndex);
   if (fileSectorIdx == NOT_FOUND_INDEX)
   {
-    // printString("MAsuk sini");
     *result = -1;
   }
   else
@@ -306,60 +236,9 @@ void readFile(char *buffer, char *path, int *result, char parentIndex)
   }
 }
 
-// void readFile(char *buffer, char *path, int *result, char parentIndex) {
-//   char map[512];
-//   char files[1024];
-//   char sectors[512];
-//   // char* p;
-
-//   char fileIndex;
-
-//   int i; // index di sectors
-//   char entry[512]; // isi files
-//   char noSektor; // sectors entry
-
-//   // read dir/files sector
-//   readSector(map, 0x100);
-//   readSector(files, 0x101);
-//   readSector(files + 512, 0x102);
-
-//   fileIndex = idxPath(path, files, parentIndex);
-
-//   if (fileIndex == NOT_FOUND_INDEX) {
-//     printString("File not found");
-//     *result = -1;
-//     return;
-//   }
-
-//   // printString(itoa(files[(fileIndex * 16) + 1], p, 16));
-
-//   if (files[(fileIndex * 16) + 1] == 0xFF) {
-//     // file nya folder
-//     printString("Provided path is a directory");
-//     *result = -1;
-//     return;
-//   }
-
-//   // read sectors
-//   readSector(sectors, 0x103);
-  
-//   // masukin ke buffer
-//   i = 0;
-//   noSektor = sectors[(files[(fileIndex * 16) + 1]) * 16 + i];
-//   while (i < 16 && noSektor != '\0') {
-//     clear(entry, 512);
-//     readSector(buffer + (i * 512), noSektor);
-//     readSector(entry, noSektor);
-//     i += 1;
-//     noSektor = sectors[(files[(fileIndex * 16) + 1]) * 16 + i];
-//   }
-//   *result = 0;
-// }
-
 
 
 void removeFile(char* path, int* result, char parentIndex){
-
   // char map[512], files[1024], sectors[512];
   // char filePathIndex, sector;
   // int i;

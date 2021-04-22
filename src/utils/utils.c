@@ -2,15 +2,19 @@
 #include "../definition/definition.h"
 #include "../string/string.h"
 
+void clear(char *buffer, int length)
+{
+  int i;
+  for (i = 0; i < length; i++)
+  {
+    buffer[i] = 0x0;
+  }
+}
+
 char idxPath(char *path, char *files, char parentIndex)
 {
   int i = 0, j;
   char currentDirName[MAX_CHAR], currentIndex;
-  // char tolol[255];
-
-  // printString("==============");
-  // printString(itoa(parentIndex, tolol, 10));
-  // printString("==============");
 
   while (i < MAX_CHAR && path[i] != '/' && path[i] != 0)
   {
@@ -18,24 +22,20 @@ char idxPath(char *path, char *files, char parentIndex)
     i++;
   }
 
-
   currentDirName[i] = '\0';
 
   currentIndex = getCurrentIndex(currentDirName, files, parentIndex);
 
-  if (path[i + 1] == '\0')
+  if (path[i] == '\0')
   {
-    printString("current index");
     return currentIndex;
   }
   else if (currentIndex == NOT_FOUND_INDEX)
   {
-    printString("Not found bro");
     return NOT_FOUND_INDEX;
   }
   else
   {
-    printString("Rekursif bro");
     return idxPath(path + i + 1, files, currentIndex);
   }
 }

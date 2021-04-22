@@ -1,5 +1,4 @@
 # This script are meant to be run individually, separated from the Operating System
-
 import os
 import sys
 

@@ -7,9 +7,7 @@
 #define NOT_FOUND_INDEX 0x40
 #define UNDEFINE_INDEX -1
 
-
 void handleInterrupt21(int AX, int BX, int CX, int DX);
-void clear(char *buffer, int length);
 void drawingBox();
 void drawingImage();
 
@@ -25,19 +23,10 @@ int main()
   interrupt(0x10, 0x03, 0x0, 0x0, 0x0);
 
   // Print string
-  handleInterrupt21(0x0, "<====== WELCOME =====>", 0x0, 0x0);
-  interrupt(0x21, 0x06, "ls", 0x3000, status);
+  // handleInterrupt21(0x0, "<====== WELCOME =====>", 0x0, 0x0);
+  interrupt(0x21, 0x06, "shell", 0x3000, status);
   // runShell();
   // while(1);
-}
-
-void clear(char *buffer, int length)
-{
-  int i;
-  for (i = 0; i < length; i++)
-  {
-    buffer[i] = 0x0;
-  }
 }
 
 void drawingBox()
@@ -59,11 +48,12 @@ void executeProgram(char *filename, int segment, int *success, char parentIndex)
   int i;
   int isSuccess;
   char fileBuffer[512 * 16];
+
   // Buka file dengan readFile
-  printString(filename);
-  readFile(&fileBuffer, "iseng.txt", &isSuccess, 0xFF);
+  readFile(&fileBuffer, filename, &isSuccess, parentIndex);
+
   // If success, salin dengan putInMemory
-  if (isSuccess) {
+  if (isSuccess == 0) {
     // launchProgram
     for (i = 0; i < 512*16; i++) {
       putInMemory(segment, i, fileBuffer[i]);

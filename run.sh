@@ -14,8 +14,12 @@ bcc -ansi -c -o ./output/folderIO.o ./src/folderIO/folderIO.c
 bcc -ansi -c -o ./output/fileIO.o ./src/fileIO/fileIO.c
 
 nasm -f as86 ./asm/lib.asm -o ./output/lib_asm.o
+
 bcc -ansi -c -o ./output/ls.o ./src/lib/ls.c 
-ld86 -o ./bin/ls -d ./output/ls.o ./output/lib_asm.o
+bcc -ansi -c -o ./output/shell.o ./src/shell/shell.c
+
+ld86 -o ./bin/ls -d ./output/ls.o ./output/lib_asm.o ./output/utils.o ./output/string.o ./output/sector.o ./output/math.o ./output/folderIO.o ./output/fileIO.o
+ld86 -o ./bin/shell -d ./output/shell.o ./output/lib_asm.o ./output/utils.o ./output/string.o ./output/sector.o ./output/math.o ./output/folderIO.o ./output/fileIO.o
 
 nasm -f as86 ./asm/kernel.asm -o ./output/kernel_asm.o
 ld86 -o ./output/kernel -d ./output/kernel.o ./output/kernel_asm.o ./output/utils.o ./output/string.o ./output/sector.o ./output/math.o ./output/folderIO.o ./output/fileIO.o
@@ -35,7 +39,7 @@ dd if=./output/files.img of=./output/system.img bs=512 count=2 seek=257 conv=not
 dd if=./output/sectors.img of=./output/system.img bs=512 count=1 seek=259 conv=notrunc
 
 python3 ./script/loadfile.py ./data/iseng.txt
-python3 ./script/loadProgram.py ./bin/ls
+python3 ./script/loadProgram.py ./bin/ls ./bin/shell
 
-# echo start bochs
+# # echo start bochs
 bochs -f if2230.config
