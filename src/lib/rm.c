@@ -1,4 +1,7 @@
-void rm(char *name, char *currDir);
+// #include "../fileIO/fileIO.h"
+// #include "../folderIO/folderIO.h"
+
+void rm(char *name, char currDir);
 
 int main() {
     char files[1024];
@@ -18,7 +21,7 @@ int main() {
     if(numOfArgs[0] == 2){
         getSplittedStringOnIndex(parentIdx, buffer, '-', 1);
         getSplittedStringOnIndex(filename, buffer, '-', 3);
-        rm(filename, parentIdx[0]);
+        rm(filename[0], parentIdx[0]);
     }else{
         printString("Too many arguments");
     }
@@ -26,11 +29,11 @@ int main() {
     return 0;
 }
 
-void rm(char *name, char *currDir) {
+void rm(char *name, char currIdx) {
     char map[512];
     char files[1024];
     char sector[512];
-    int targetFileIdx;
+    int fileIdx;
     int idx;
     char status[16];
 
@@ -39,19 +42,23 @@ void rm(char *name, char *currDir) {
     readSector(files+512, 0x102);
     readSector(sector, 0x103);
 
-    targetFileIdx = getIdxFromFile(name, currDir, files);
-    if(targetFileIdx==-1){
+    fileIdx = idxPath(name, files, currIdx);
+
+    if(fileIdx==0x40){
         printString("File not found!");
         return;
     }
 
-    if(files[targetFileIdx*16 + 1]==0xff){
-        printString("Deleting folder...");
-        deleteDirectory(targetFileIdx,map, files, sector);
+    if(files[fileIdx*16 + 1]==0xff){
+        printString("Deleting folder and files inside...");
+        removeDirectory(fileIdx);
     }else{
         printString("Deleting File...");
-        deleteFile(targetFileIdx, map, files, sector);
+        deleteFile(fileIdx);
     }
+
+    idx = idxPath("rpl/~msg", files, 0xFF);
+    deleteFile(idx);
 
     interrupt(0x21, 0x06, "shell", 0x3000, status);
 }
