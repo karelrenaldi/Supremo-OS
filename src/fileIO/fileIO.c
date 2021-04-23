@@ -261,6 +261,7 @@ void deleteFile(int fileIdx){
     }
     files[fileIdx*16 + i] = 0x00;
   }
+  
   writeSector(map, 0x100);
   writeSector(files, 0x101);
   writeSector(files + 512, 0x102);

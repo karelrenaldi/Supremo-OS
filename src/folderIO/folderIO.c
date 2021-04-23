@@ -26,9 +26,14 @@ void removeDirectory(int folderIdx) {
   for (i = 0; i < 64; i++){
     j = 0;
     if(files[i*16] == folderIdx){
-        deleteFile(i);
+      deleteFile(i);
     }
   }
+
+  writeSector(map, 0x100);
+  writeSector(files, 0x101);
+  writeSector(files + 512, 0x102);
+  writeSector(sector, 0x103);
 }
 
 void createDir(char* filename, int* flag, char currentShellIdx){
