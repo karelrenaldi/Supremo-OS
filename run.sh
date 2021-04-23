@@ -15,10 +15,22 @@ bcc -ansi -c -o ./output/fileIO.o ./src/fileIO/fileIO.c
 
 nasm -f as86 ./asm/lib.asm -o ./output/lib_asm.o
 
-bcc -ansi -c -o ./output/ls.o ./src/lib/ls.c 
+bcc -ansi -c -o ./output/ls.o ./src/lib/ls.c
+bcc -ansi -c -o ./output/cat.o ./src/lib/cat.c
+bcc -ansi -c -o ./output/ln.o ./src/lib/ln.c
+bcc -ansi -c -o ./output/cp.o ./src/lib/cp.c
+bcc -ansi -c -o ./output/mkdir.o ./src/lib/mkdir.c
+bcc -ansi -c -o ./output/mv.o ./src/lib/mv.c
+
 bcc -ansi -c -o ./output/shell.o ./src/shell/shell.c
 
 ld86 -o ./bin/ls -d ./output/ls.o ./output/lib_asm.o ./output/utils.o ./output/string.o ./output/sector.o ./output/math.o ./output/folderIO.o ./output/fileIO.o
+ld86 -o ./bin/cat -d ./output/cat.o ./output/lib_asm.o ./output/utils.o ./output/string.o ./output/sector.o ./output/math.o ./output/folderIO.o ./output/fileIO.o
+ld86 -o ./bin/ln -d ./output/ln.o ./output/lib_asm.o ./output/utils.o ./output/string.o ./output/sector.o ./output/math.o ./output/folderIO.o ./output/fileIO.o
+ld86 -o ./bin/cp -d ./output/cp.o ./output/lib_asm.o ./output/utils.o ./output/string.o ./output/sector.o ./output/math.o ./output/folderIO.o ./output/fileIO.o
+ld86 -o ./bin/mkdir -d ./output/mkdir.o ./output/lib_asm.o ./output/utils.o ./output/string.o ./output/sector.o ./output/math.o ./output/folderIO.o ./output/fileIO.o
+ld86 -o ./bin/mv -d ./output/mv.o ./output/lib_asm.o ./output/utils.o ./output/string.o ./output/sector.o ./output/math.o ./output/folderIO.o ./output/fileIO.o
+
 ld86 -o ./bin/shell -d ./output/shell.o ./output/lib_asm.o ./output/utils.o ./output/string.o ./output/sector.o ./output/math.o ./output/folderIO.o ./output/fileIO.o
 
 nasm -f as86 ./asm/kernel.asm -o ./output/kernel_asm.o
@@ -39,7 +51,7 @@ dd if=./output/files.img of=./output/system.img bs=512 count=2 seek=257 conv=not
 dd if=./output/sectors.img of=./output/system.img bs=512 count=1 seek=259 conv=notrunc
 
 python3 ./script/loadfile.py ./data/iseng.txt
-python3 ./script/loadProgram.py ./bin/ls ./bin/shell
+python3 ./script/loadProgram.py ./bin/ls ./bin/shell ./bin/cat ./bin/ln ./bin/cp ./bin/mkdir ./bin/mv
 
 # # echo start bochs
 bochs -f if2230.config

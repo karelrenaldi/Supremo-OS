@@ -1,11 +1,16 @@
-#include "shell/shell.h"
-#include "utils/utils.h"
+#include "./utils/utils.h"
+#include "./string/string.h"
+#include "./math/math.h"
+#include "./folderIO/folderIO.h"
+#include "./fileIO/fileIO.h"
+#include "./definition/definition.h"
+#include "./sector/sector.h"
 
-#define MAX_CHAR 14
-#define FALSE 0
-#define TRUE 1
-#define NOT_FOUND_INDEX 0x40
-#define UNDEFINE_INDEX -1
+// #define MAX_CHAR 14
+// #define FALSE 0
+// #define TRUE 1
+// #define NOT_FOUND_INDEX 0x40
+// #define UNDEFINE_INDEX -1
 
 void handleInterrupt21(int AX, int BX, int CX, int DX);
 void drawingBox();
@@ -19,14 +24,8 @@ int main()
   int flag;
   makeInterrupt21();
   
-  // Back to text mode
   interrupt(0x10, 0x03, 0x0, 0x0, 0x0);
-
-  // Print string
-  // handleInterrupt21(0x0, "<====== WELCOME =====>", 0x0, 0x0);
   interrupt(0x21, 0x06, "shell", 0x3000, status);
-  // runShell();
-  // while(1);
 }
 
 void drawingBox()
@@ -45,25 +44,45 @@ void drawingBox()
 
 void executeProgram(char *filename, int segment, int *success, char parentIndex) {
   // Buat buffer
-  int i;
-  int isSuccess;
-  char fileBuffer[512 * 16];
+  int i, isSuccess, idx;
+  char fileBuffer[512 * 16], files[1024], notfound[11], pathMSG[];
 
-  // Buka file dengan readFile
+  readSector(files, 0x101);
+  readSector(files + 512, 0x102);
+
   readFile(&fileBuffer, filename, &isSuccess, parentIndex);
-
-  // If success, salin dengan putInMemory
   if (isSuccess == 0) {
-    // launchProgram
     for (i = 0; i < 512*16; i++) {
       putInMemory(segment, i, fileBuffer[i]);
     }
     launchProgram(segment);
   } else {
-    interrupt(0x21, 0, "File not found!", 0,0);
+    pathMSG[0] = 'r';
+    pathMSG[1] = 'p';
+    pathMSG[2] = 'l';
+    pathMSG[3] = '/';
+    pathMSG[4] = '~';
+    pathMSG[5] = 'm';
+    pathMSG[6] = 's';
+    pathMSG[7] = 'g';
+    pathMSG[8] = '\0';
+    deleteFile(idxPath(pathMSG, files, 0xFF));
+
+    clear(notfound, 11);
+    notfound[0] = 'n';
+    notfound[1] = 'o';
+    notfound[2] = 't';
+    notfound[3] = ' ';
+    notfound[4] = 'f';
+    notfound[5] = 'o';
+    notfound[6] = 'u';
+    notfound[7] = 'n';
+    notfound[8] = 'd';
+    notfound[9] = '\r';
+    notfound[10] = '\n';
+    interrupt(0x21, 0, notfound, 0,0);
   }
 }
-
 
 void handleInterrupt21(int AX, int BX, int CX, int DX)
 {

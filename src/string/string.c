@@ -95,3 +95,32 @@ void readString(char* string) {
       }
     }
 }
+
+void getSplittedStringOnIndex(char* target, char* str, char delimiter, int idx){
+  char temp[255];
+  int i;
+  int startIdx = 0;
+  int length = lengthString(str);
+  int wordCount = 0;
+
+  for(i = 0; i<length; i++){
+    temp[i] = str[i];
+  }
+  temp[length] = delimiter;
+  temp[length+1] = '\0';
+  for(i = 0; i<length+1; i++){
+    if(wordCount==idx) *(target + (i-startIdx)) = temp[i];
+
+    if(i==length-1) temp[i+1] = '\0';
+
+    if(temp[i]==delimiter){
+      wordCount++;
+      if(wordCount>idx){
+        *(target + (i-startIdx)) = '\0';
+        break;
+      }
+      startIdx=i+1;
+    }
+  }
+}
+

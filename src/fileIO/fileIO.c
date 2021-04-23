@@ -1,5 +1,6 @@
 #include "fileIO.h"
 #include "../definition/definition.h"
+#include "../utils/utils.h"
 
 void writeFile(char *buffer, char *path, int *sectorsFlag, char parentIndex)
 {
@@ -37,7 +38,7 @@ void writeFile(char *buffer, char *path, int *sectorsFlag, char parentIndex)
   if (filePathIndex != 0x40) // Found
   {
     *sectorsFlag = -1;
-    printString("File sudah ada");
+    // printString("File sudah ada");
     return;
   }
 
@@ -159,7 +160,6 @@ void writeFile(char *buffer, char *path, int *sectorsFlag, char parentIndex)
         }
         else
         {
-          printString("bisa nulis");
           // Write to sector
           written_sector = 0;
           while (written_sector < sector_needed)
@@ -197,13 +197,12 @@ void writeFile(char *buffer, char *path, int *sectorsFlag, char parentIndex)
   writeSector(files, 0x101);
   writeSector(files + 512, 0x102);
   writeSector(sectors, 0x103);
-  printString("berhasil writefile");
+  // printString("berhasil writefile");
 }
 
 void readFile(char *buffer, char *path, int *result, char parentIndex)
 {
   char files[1024];
-  char tolol[255];
   char sectors[512];
   char found = FALSE;
   char fileSectorIdx;
@@ -216,6 +215,7 @@ void readFile(char *buffer, char *path, int *result, char parentIndex)
   fileSectorIdx = idxPath(path, files, parentIndex);
   if (fileSectorIdx == NOT_FOUND_INDEX)
   {
+    printString("Tidak ketemu");
     *result = -1;
   }
   else
@@ -236,44 +236,35 @@ void readFile(char *buffer, char *path, int *result, char parentIndex)
   }
 }
 
-
-
-void removeFile(char* path, int* result, char parentIndex){
-  // char map[512], files[1024], sectors[512];
-  // char filePathIndex, sector;
-  // int i;
-
-  // // Baca sektor map dan dir
-  // readSector(map, 0x100);
-  // readSector(files, 0x101);
-  // readSector(files + 512, 0x102);
-  // readSector(sectors, 0x103);
-
-  // filePathIndex = idxPath(path, files, parentIndex);
-
-  // if (filePathIndex == NOT_FOUND_INDEX) // Found
-  // {
-  //   printString("File tidak ada");
-  //   return;
-  // }
-
-  // int i = 0;
-  // sector = files[filePathIndex*16 + 1];
-  // sector = files[filePathIndex*16 + 1];
-  // i = 0;
-
-  // while(i<16 && sectors[sector*16+1] != 0x00){
-  //   map[sectors[sector*16+1]] = 0x00;
-  //   sectors[sector*16 + 1] = 0x00;
-  //   i++;
-  // }
-
-  // for(i=0; i<16; i++){
-  //     files[filePathIndex*16+i] = 0x00;
-  // }
-
-  // writeSector(map, 0x100);
-  // writeSector(sector, 0x103);
-  // writeSector(files, 0x101);
-  // writeSector(files+512, 0x102);
+void cleanSector(int sector){
+  char buffer[512];
+  interrupt(0x21,2,buffer,sector,0);
+  clear(buffer, 512);
+  interrupt(0x21,3,buffer,sector,0);
 }
+
+void deleteFile(int fileIdx){
+  int sectorIdx;
+  int i;
+  char map[512], files[1024], sector[512];
+
+  readSector(map, 0x100);
+  readSector(files, 0x101);
+  readSector(files + 512, 0x102);
+  readSector(sector, 0x103);
+  
+  sectorIdx = files[fileIdx*16 + 1];
+  for(i = 0; i<16; i++){
+    if(sector[sectorIdx*16 +i]!=0x00 && sectorIdx!=0xFF){
+      map[sector[sectorIdx*16 +i]] = 0x00;
+      sector[sectorIdx*16+i] = 0x00;
+    }
+    files[fileIdx*16 + i] = 0x00;
+  }
+  writeSector(map, 0x100);
+  writeSector(files, 0x101);
+  writeSector(files + 512, 0x102);
+  writeSector(sector, 0x103);
+}
+
+

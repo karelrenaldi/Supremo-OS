@@ -22,11 +22,12 @@ char idxPath(char *path, char *files, char parentIndex)
     i++;
   }
 
+
   currentDirName[i] = '\0';
 
   currentIndex = getCurrentIndex(currentDirName, files, parentIndex);
 
-  if (path[i] == '\0')
+  if (path[i] == '\0' || path[i + 1] == '\0')
   {
     return currentIndex;
   }
