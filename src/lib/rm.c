@@ -1,6 +1,3 @@
-// #include "../fileIO/fileIO.h"
-// #include "../folderIO/folderIO.h"
-
 void rm(char *name, char currDir);
 
 int main() {
@@ -20,11 +17,13 @@ int main() {
     getSplittedStringOnIndex(numOfArgs, buffer, '-', 0);
     if(numOfArgs[0] == 2){
         getSplittedStringOnIndex(parentIdx, buffer, '-', 1);
-        getSplittedStringOnIndex(filename, buffer, '-', 3);
-        rm(filename[0], parentIdx[0]);
+        getSplittedStringOnIndex(filename, buffer, '-', 2);
+        rm(filename, parentIdx[0]);
     }else{
         printString("Too many arguments");
     }
+
+    interrupt(0x21, 0x06, "shell", 0x3000, status);
 
     return 0;
 }
@@ -56,9 +55,4 @@ void rm(char *name, char currIdx) {
         printString("Deleting File...");
         deleteFile(fileIdx);
     }
-
-    idx = idxPath("rpl/~msg", files, 0xFF);
-    deleteFile(idx);
-
-    interrupt(0x21, 0x06, "shell", 0x3000, status);
 }
