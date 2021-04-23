@@ -107,32 +107,3 @@ void listFile(char currentIndex){
     }
   }
 }
-
-void removeDirectory(int folderIdx) {
-  int sectorIdx;
-  int i,j;
-  char map[512], files[1024], sector[512];
-
-  readSector(map, 0x100);
-  readSector(files, 0x101);
-  readSector(files + 512, 0x102);
-  readSector(sector, 0x103);
-
-  // delete folder
-  sectorIdx = files[folderIdx*16 + 1];
-  for(i = 0; i<16; i++){
-    if(sector[sectorIdx*16 +i]!=0x00 && sectorIdx!=0xFF){
-      map[sector[sectorIdx*16 +i]] = 0x00;
-      sector[sectorIdx*16+i] = 0x00;
-    }
-    files[folderIdx*16 + i] = 0x00;
-  }
-
-  // delete files yg ada di folder
-  for (i = 0; i < 64; i++){
-    j = 0;
-    if(files[i*16] == folderIdx){
-        deleteFile(i);
-    }
-  }
-}
