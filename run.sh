@@ -21,6 +21,7 @@ bcc -ansi -c -o ./output/ln.o ./src/lib/ln.c
 bcc -ansi -c -o ./output/cp.o ./src/lib/cp.c
 bcc -ansi -c -o ./output/mkdir.o ./src/lib/mkdir.c
 bcc -ansi -c -o ./output/mv.o ./src/lib/mv.c
+bcc -ansi -c -o ./output/rm.o ./src/lib/rm.c
 
 bcc -ansi -c -o ./output/shell.o ./src/shell/shell.c
 
@@ -30,6 +31,7 @@ ld86 -o ./bin/ln -d ./output/ln.o ./output/lib_asm.o ./output/utils.o ./output/s
 ld86 -o ./bin/cp -d ./output/cp.o ./output/lib_asm.o ./output/utils.o ./output/string.o ./output/sector.o ./output/math.o ./output/folderIO.o ./output/fileIO.o
 ld86 -o ./bin/mkdir -d ./output/mkdir.o ./output/lib_asm.o ./output/utils.o ./output/string.o ./output/sector.o ./output/math.o ./output/folderIO.o ./output/fileIO.o
 ld86 -o ./bin/mv -d ./output/mv.o ./output/lib_asm.o ./output/utils.o ./output/string.o ./output/sector.o ./output/math.o ./output/folderIO.o ./output/fileIO.o
+ld86 -o ./bin/rm -d ./output/rm.o ./output/lib_asm.o ./output/utils.o ./output/string.o ./output/sector.o ./output/math.o ./output/folderIO.o ./output/fileIO.o
 
 ld86 -o ./bin/shell -d ./output/shell.o ./output/lib_asm.o ./output/utils.o ./output/string.o ./output/sector.o ./output/math.o ./output/folderIO.o ./output/fileIO.o
 
@@ -51,7 +53,7 @@ dd if=./output/files.img of=./output/system.img bs=512 count=2 seek=257 conv=not
 dd if=./output/sectors.img of=./output/system.img bs=512 count=1 seek=259 conv=notrunc
 
 python3 ./script/loadfile.py ./data/iseng.txt
-python3 ./script/loadProgram.py ./bin/ls ./bin/shell ./bin/cat ./bin/ln ./bin/cp ./bin/mkdir ./bin/mv
+python3 ./script/loadProgram.py ./bin/ls ./bin/shell ./bin/cat ./bin/ln ./bin/cp ./bin/mkdir ./bin/mv ./bin/rm
 
 # # echo start bochs
 bochs -f if2230.config

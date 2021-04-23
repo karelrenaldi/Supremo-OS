@@ -13,7 +13,6 @@ int main() {
     
     clear(buffer, 512 * 16);
     readFile(buffer, "rpl/~msg", &flag, 0xFF);
-    printString(buffer);
 
     getSplittedStringOnIndex(numOfArgs, buffer, '-', 0);
     if(numOfArgs[0] == 3){

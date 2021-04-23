@@ -3,6 +3,6 @@
 
 void createDir(char* filename, int* flag, char currentShellIdx);
 void listFile(char currentIndex);
-// delete
+void removeDirectory(int folderIdx);
 
 #endif

@@ -266,5 +266,3 @@ void deleteFile(int fileIdx){
   writeSector(files + 512, 0x102);
   writeSector(sector, 0x103);
 }
-
-
