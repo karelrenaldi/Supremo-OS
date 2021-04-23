@@ -28,7 +28,6 @@ int main() {
     return 0;
 }
 
-
 void rm(char *name, char currIdx) {
     char map[512];
     char files[1024];
